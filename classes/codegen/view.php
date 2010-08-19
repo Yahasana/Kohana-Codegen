@@ -9,6 +9,8 @@ class Codegen_View extends Codegen {
         $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['prefix']);
         $repos = parent::$config['repository'].'classes'.DIRECTORY_SEPARATOR.$repos.DIRECTORY_SEPARATOR;
 
+        $config['prefix'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['prefix'])));
+
         foreach($config['driver'] as $driver)
         {
             $driver = strtolower($driver);
@@ -37,7 +39,7 @@ class Codegen_View extends Codegen {
                 if($this->$driver($table, $columns))
                     $tmp .= "<span class='good'>&#9745; $driver</span><br />";
                 else
-                    $tmp .= "<span class='notyet'>&#9746; $driver</span><br />";                
+                    $tmp .= "<span class='notyet'>&#9746; $driver</span><br />";
             }
             else
             {
@@ -80,7 +82,7 @@ CCC;
         $fp = fopen($this->repository.'mustache'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
         fwrite($fp, $content);
         fclose($fp);
-        
+
         return TRUE;
     }
 

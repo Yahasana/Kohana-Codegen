@@ -26,7 +26,7 @@ class Controller_Codegen extends Kohana_Controller {
             a{text-decoration:none}
             caption{background:#A52A2A;color:#00FFA9}
             caption a{margin:0 1em}
-            caption i{color:#FFA07A;padding-bottom:5px;display:block}
+            caption i{color:#FFA07A;padding:5px;display:block}
             table td{border-bottom:1px solid #eee;padding:0 2em}
             thead th{border-bottom:1px solid #eee;text-align:center;background:#222;color:#eee}
             tbody th{border:1px solid #bbb;border-width:0 0 1px 0;text-align:left;background:#eee;padding-left:5px}
@@ -34,7 +34,7 @@ class Controller_Codegen extends Kohana_Controller {
             .good{color:green}.notyet{color:#DAA520}.noexist{color:red}</style>
             <table><caption><h3>Kohana Codegen generated for '.$module.'</h3>'.$response.
             '<i>&#9745 - generated successfully, &#9746 - driver not impletement, &#10008; - driver not exist</i></caption>
-            <thead><tr><th>DataTable</th><th>Controllers</th><th>Models</th><th>Views</th><th>Themes</th><th>I18n</th></tr></thead><tbody>';
+            <thead><tr><th>Data Tables</th><th>Controllers</th><th>Models</th><th>Views</th><th>Themes</th><th>I18n</th></tr></thead><tbody>';
 
         $database   = Database::instance($module);
 

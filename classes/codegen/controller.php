@@ -9,6 +9,8 @@ class Codegen_Controller extends Codegen {
         $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['prefix']);
         $repos = parent::$config['repository'].'classes'.DIRECTORY_SEPARATOR.$repos.DIRECTORY_SEPARATOR;
 
+        $config['prefix'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['prefix'])));
+
         is_dir($repos) ? $this->empty_dir($repos) : mkdir($repos, 0755, TRUE);
 
         $this->repository   = $repos;
