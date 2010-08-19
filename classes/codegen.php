@@ -14,7 +14,7 @@ abstract class Codegen {
 			
 			$config['repository'] .= DIRECTORY_SEPARATOR.$config['module'].DIRECTORY_SEPARATOR;
 
-            is_dir($config['repository']) OR mkdir($config['repository'], 755);
+            is_dir($config['repository']) OR mkdir($config['repository'], 755, TRUE);
 
 			Codegen::$config = $config;
 		}
