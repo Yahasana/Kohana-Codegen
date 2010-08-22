@@ -6,10 +6,10 @@ class Codegen_Model extends Codegen {
     {
         if($config === NULL) $config = parent::$config['model'];
 
-        $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['prefix']);
+        $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['directory']);
         $repos = parent::$config['repository'].'classes'.DIRECTORY_SEPARATOR.$repos.DIRECTORY_SEPARATOR;
 
-        $config['prefix'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['prefix'])));
+        $config['directory'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['directory'])));
 
         foreach($config['driver'] as $driver)
         {
@@ -64,7 +64,7 @@ class Codegen_Model extends Codegen {
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
                             '$see'      => 'Model',
-                        ))."\nclass {$this->settings['prefix']}{$uctalbe} extends Model {\n\n";
+                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends Model {\n\n";
 
         $columns    = implode('\',\'', array_keys($columns));
         $content .= <<< CCC
@@ -126,7 +126,7 @@ class Codegen_Model extends Codegen {
         return \$this->_db->query(Database::SELECT, 'SELECT * '.\$sql);
     }
 
-} // END {$this->settings['prefix']}$uctalbe
+} // END {$this->settings['directory']}$uctalbe
 
 CCC;
         $fp = fopen($this->repository.'model'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
@@ -156,9 +156,52 @@ CCC;
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
                             '$see'      => 'ORM',
-                        ))."\nclass {$this->settings['prefix']}{$uctalbe} extends ORM {\n\n";
+                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends ORM {\n\n";
 
-        $rules = "    protected \$_rules = array(\n";
+
+        $foreign = $this->foreign_key($table_old);
+
+        if(isset($foreign['belong_to']))
+        {
+            $belong_to = "protected \$_belongs_to = array(\n";
+            foreach($foreign['belong_to'] as $t => $k)
+            {
+                $t      = explode('_', $t);
+                $t      = Inflector::singular(end($t));
+                $belong_to .= "        '$t' => array('foreign_key' => '$k'),\n";
+            }
+            $belong_to .= "    );\n\n";
+        }
+        else
+        {
+            $belong_to = '';
+        }
+
+        if(isset($foreign['has_many']))
+        {
+            if($belong_to)
+                $has_many = "    protected \$_has_many = array(\n";
+            else
+                $has_many = "protected \$_has_many = array(\n";
+
+            foreach($foreign['has_many'] as $t => $k)
+            {
+                $t      = explode('_', $t);
+                $t      = Inflector::singular(end($t));
+                $has_many .= "        '$t' => array('through' => '$k'),\n";
+            }
+            $has_many .= "    );\n\n";
+        }
+        else
+        {
+            $has_many = '';
+        }
+
+        if($belong_to OR $has_many)
+            $rules = "    protected \$_rules = array(\n";
+        else
+            $rules = "protected \$_rules = array(\n";
+
         $labels = "protected \$_labels = array(\n";
         //var_export($columns);die;
         foreach($columns as $key => $column)
@@ -201,40 +244,6 @@ CCC;
         $rules .= "    );";
         $labels .= "    );";
 
-        $foreign = $this->foreign_key($table_old);
-
-        if(isset($foreign['belong_to']))
-        {
-            $belong_to = "protected \$_belongs_to = array(\n";
-            foreach($foreign['belong_to'] as $t => $k)
-            {
-                $belong_to .= "        '$t' => array('through' => '$k'),\n";
-            }
-            $belong_to .= "    );\n\n";
-        }
-        else
-        {
-            $belong_to = '';
-        }
-
-        if(isset($foreign['has_many']))
-        {
-            if($belong_to)
-                $has_many = "    protected \$_has_many = array(\n";
-            else
-                $has_many = "protected \$_has_many = array(\n";
-                
-            foreach($foreign['has_many'] as $t => $k)
-            {
-                $has_many .= "        '$t' => array('through' => '$k'),\n";
-            }
-            $has_many .= "    );\n\n";
-        }
-        else
-        {
-            $has_many = '';
-        }
-
         $content .= <<< CCC
     /**
      * Name of the database to use
@@ -253,7 +262,7 @@ CCC;
     protected \$_table_name = '$table_old';
 
     /**
-     * Column to use as primary key  	id
+     * Column to use as primary key
      *
      * @access	protected
      * @var		string	\$_primary_key default [id]
@@ -286,7 +295,7 @@ CCC;
         return \$this->limit(\$page_from)->offset(\$page_offset)->find_all();
     }
 
-} // END {$this->settings['prefix']}$uctalbe
+} // END {$this->settings['directory']}$uctalbe
 
 CCC;
         $fp = fopen($this->repository.'orm'.DIRECTORY_SEPARATOR.$table.'.php', 'w');

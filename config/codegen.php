@@ -11,7 +11,7 @@ return array(
     // Controller
     'controller' => array(
         'on'        => TRUE,
-        'prefix'    => 'controller',
+        'directory' => 'controller',
         'extends'   => 'Controller',
         'before'    => FALSE,
         'after'     => FALSE,
@@ -20,7 +20,8 @@ return array(
     // Model
     'model' => array(
         'on'        => TRUE,
-        'prefix'    => 'model',
+        'directory' => 'model',
+        't_prefix'  => 't_',
         'orm'       => array(
             'excludes'  => array('insert_time','insert_by','update_time','update_by','remark'),
             'validate'  => array(
@@ -34,7 +35,7 @@ return array(
     // View
     'view' => array(
         'on'        => TRUE,
-        'prefix'    => 'view',
+        'directory' => 'view',
         'extends'   => 'Page',
         'driver'    => array('php', 'mustache', 'twig', 'smarty')
     ),
