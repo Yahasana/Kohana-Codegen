@@ -157,11 +157,14 @@ CCC;
                             '$year'     => date('Y'),
                             '$see'      => 'ORM',
                         ))."\nclass {$this->settings['prefix']}{$uctalbe} extends ORM {\n\n";
-        $rules = "protected \$_rules = array(\n";
+
+        $rules = "    protected \$_rules = array(\n";
         $labels = "protected \$_labels = array(\n";
         //var_export($columns);die;
         foreach($columns as $key => $column)
         {
+            if(in_array($key, $this->settings['orm']['excludes'])) continue;
+
             $rule = array();
 
             if( ! $column['is_nullable'])
@@ -183,31 +186,85 @@ CCC;
                 case 'enum':
                     break;
             }
-            
-            if($column['comment'])
-                $rules .= "\t\t// $key - ".$column['comment']."\n";
-                
-            if($rule)
-                $rules .= "\t\t'$key'\t=> array(".implode('', $rule)."),\n";
 
-            $labels .= "\t\t'$key'\t=> '".ucfirst(Inflector::humanize($key))."',\n";
+            if($rule)
+            {
+                if($column['comment'])
+                    $rules .= "        // ".$column['comment']."\n";
+
+                $rules .= "        '$key'\t=> array(".implode('', $rule)."),\n";
+            }
+
+            $labels .= "        '$key'\t=> '".ucfirst(Inflector::humanize($key))."',\n";
         }
 
-        $rules .= "\t);\n";
-        $labels .= "\t);\n";
+        $rules .= "    );";
+        $labels .= "    );";
+
+        $foreign = $this->foreign_key($table_old);
+
+        if(isset($foreign['belong_to']))
+        {
+            $belong_to = "protected \$_belongs_to = array(\n";
+            foreach($foreign['belong_to'] as $t => $k)
+            {
+                $belong_to .= "        '$t' => array('through' => '$k'),\n";
+            }
+            $belong_to .= "    );\n\n";
+        }
+        else
+        {
+            $belong_to = '';
+        }
+
+        if(isset($foreign['has_many']))
+        {
+            if($belong_to)
+                $has_many = "    protected \$_has_many = array(\n";
+            else
+                $has_many = "protected \$_has_many = array(\n";
+                
+            foreach($foreign['has_many'] as $t => $k)
+            {
+                $has_many .= "        '$t' => array('through' => '$k'),\n";
+            }
+            $has_many .= "    );\n\n";
+        }
+        else
+        {
+            $has_many = '';
+        }
 
         $content .= <<< CCC
+    /**
+     * Name of the database to use
+     *
+     * @access	protected
+     * @var		string	\$_db default [default]
+     */
     protected \$_db = '{$this->module}';
 
+    /**
+     * Table name to use
+     *
+     * @access	protected
+     * @var		string	\$_table_name default [singular model name]
+     */
     protected \$_table_name = '$table_old';
 
+    /**
+     * Column to use as primary key  	id
+     *
+     * @access	protected
+     * @var		string	\$_primary_key default [id]
+     */
     protected \$_primary_key = '$key_id';
 
     protected \$_filters = array(TRUE => array('trim' => NULL));
 
-    $rules
+    {$belong_to}{$has_many}{$rules}
 
-    $labels
+    {$labels}
 
     public function lists(array \$params, \$page_from = 0, \$page_offset = 8, & \$total_rows = FALSE)
     {
@@ -253,10 +310,15 @@ CCC;
     {
         $tables = array();
         $db = Database::instance($this->module);
-        $query = $db->query(Database::SELECT, 'SELECT * FROM information_schema.key_column_usage WHERE table_name=\''.$table.'\' AND referenced_column_name IS NOT NULL');
+        $query = $db->query(Database::SELECT, 'SELECT * FROM information_schema.key_column_usage WHERE (TABLE_NAME=\''
+            .$table.'\' OR REFERENCED_TABLE_NAME=\''.$table.'\') AND referenced_column_name IS NOT NULL');
+
         foreach($query as $row)
         {
-            $tables[$row['REFERENCED_TABLE_NAME']][] = $row['REFERENCED_COLUMN_NAME'];
+            if($row['REFERENCED_TABLE_NAME'] === $table)
+                $tables['has_many'][$row['TABLE_NAME']] = $row['REFERENCED_COLUMN_NAME'];
+            else
+                $tables['belong_to'][$row['REFERENCED_TABLE_NAME']] = $row['REFERENCED_COLUMN_NAME'];
         }
         return $tables;
     }

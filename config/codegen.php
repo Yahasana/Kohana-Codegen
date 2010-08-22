@@ -22,7 +22,7 @@ return array(
         'on'        => TRUE,
         'prefix'    => 'model',
         'orm'       => array(
-            'excludes'  => array('insert_time','insert_by','update_time','update_by'),
+            'excludes'  => array('insert_time','insert_by','update_time','update_by','remark'),
             'validate'  => array(
                 'rules'   => TRUE,      # TRUE - generate valid rules
                 'requires'=> FALSE      # TRUE - valid all fields, FALSE - valid ONLY not null fields
