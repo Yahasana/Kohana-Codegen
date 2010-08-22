@@ -143,7 +143,100 @@ CCC;
 
     protected function orm($table, $columns)
     {
-        //
+        $table_old = $table;
+
+        $key_id = key($columns);
+
+        $table      = explode('_', $table);
+        $table      = Inflector::singular(end($table));
+        $uctalbe    = '_'.ucfirst($table);
+
+        $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
+                        .strtr(parent::$config['license'], array(
+                            '$package'  => $this->module,
+                            '$year'     => date('Y'),
+                            '$see'      => 'ORM',
+                        ))."\nclass {$this->settings['prefix']}{$uctalbe} extends ORM {\n\n";
+        $rules = "protected \$_rules = array(\n";
+        $labels = "protected \$_labels = array(\n";
+        //var_export($columns);die;
+        foreach($columns as $key => $column)
+        {
+            $rule = array();
+
+            if( ! $column['is_nullable'])
+                $rule[] = "'not_empty' => TRUE, ";
+
+            switch($column['data_type'])
+            {
+                case 'int':
+                case 'int unsigned':
+                case 'tinyint':
+                case 'tinyint unsigned':
+                    $rule[] = "'range' => array(".$column['min'].", ".$column['max']."), ";
+                    break;
+                case 'varchar':
+                case 'text':
+                case 'string':
+                    $rule[] = "'max_length' => array(".$column['character_maximum_length']."), ";
+                    break;
+                case 'enum':
+                    break;
+            }
+            
+            if($column['comment'])
+                $rules .= "\t\t// $key - ".$column['comment']."\n";
+                
+            if($rule)
+                $rules .= "\t\t'$key'\t=> array(".implode('', $rule)."),\n";
+
+            $labels .= "\t\t'$key'\t=> '".ucfirst(Inflector::humanize($key))."',\n";
+        }
+
+        $rules .= "\t);\n";
+        $labels .= "\t);\n";
+
+        $content .= <<< CCC
+    protected \$_db = '{$this->module}';
+
+    protected \$_table_name = '$table_old';
+
+    protected \$_primary_key = '$key_id';
+
+    protected \$_filters = array(TRUE => array('trim' => NULL));
+
+    $rules
+
+    $labels
+
+    public function lists(array \$params, \$page_from = 0, \$page_offset = 8, & \$total_rows = FALSE)
+    {
+        // Customize where from params
+        //\$this->where('', '', );
+
+        // caculte the total rows
+        if(\$total_rows === TRUE)
+        {
+            \$total_rows = \$this->count_all();
+
+            if(\$total_rows === 0)
+                return array();
+        }
+
+        // Customize order by from params
+        \$this->order_by('', 'ASC|DESC');
+
+        return \$this->limit(\$page_from)->offset(\$page_offset)->find_all();
+    }
+
+} // END {$this->settings['prefix']}$uctalbe
+
+CCC;
+        $fp = fopen($this->repository.'orm'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
+        fwrite($fp, $content);
+        fclose($fp);
+
+        return TRUE;
     }
 
     protected function jelly($table, $columns)
@@ -154,6 +247,18 @@ CCC;
     protected function sprig($table, $columns)
     {
         //
+    }
+
+    protected function foreign_key($table)
+    {
+        $tables = array();
+        $db = Database::instance($this->module);
+        $query = $db->query(Database::SELECT, 'SELECT * FROM information_schema.key_column_usage WHERE table_name=\''.$table.'\' AND referenced_column_name IS NOT NULL');
+        foreach($query as $row)
+        {
+            $tables[$row['REFERENCED_TABLE_NAME']][] = $row['REFERENCED_COLUMN_NAME'];
+        }
+        return $tables;
     }
 
 } // End Codegen_Model

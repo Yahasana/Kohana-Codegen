@@ -42,7 +42,7 @@ return array(
     // Theme layout
     'theme' => array(
         'on'        => TRUE,
-        'layout'      => array(
+        'layout'    => array(
             'edit'  => TRUE,
             'view'  => TRUE,
             'list'  => TRUE
@@ -57,16 +57,16 @@ return array(
         'standalone'=> FALSE
     ),
 
-    'license'=> <<<'CCC'
+    'license' => <<<CCC
 /**
  * description...
  *
  * @author		example <example@example.com>
- * @package		$package
- * @copyright	(c) $year example team, All rights reserved.
+ * @package		\$package
+ * @copyright	(c) \$year example team, All rights reserved.
  * @license		http://www.example.com/license.txt
  * @link		http://www.example.com
- * @see			$see
+ * @see			\$see
  * *
  */
 CCC
