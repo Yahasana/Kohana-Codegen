@@ -36,7 +36,7 @@ class Codegen_Theme extends Codegen {
                 if($this->$driver($table, $columns))
                     $tmp .= "<span class='good'>&#9745; $driver</span><br />";
                 else
-                    $tmp .= "<span class='notyet'>&#9746; $driver</span><br />";                
+                    $tmp .= "<span class='notyet'>&#9746; $driver</span><br />";
             }
             else
             {
@@ -48,7 +48,30 @@ class Codegen_Theme extends Codegen {
 
     protected function php($table, $columns)
     {
-        //
+        $table  = explode('_', $table);
+        $table  = Inflector::singular(end($table));
+        $dir    = $this->repository.'php'.DIRECTORY_SEPARATOR.$table.'-';
+        $view   = new View(NULL, array('table' => $table, 'columns'=> $columns));
+
+        foreach($this->settings['layout'] as $file => $flag)
+        {
+            if($flag === TRUE)
+            {
+                try
+                {
+                    $view->set_filename('codegen/php/'.$file);
+                }
+                catch (Kohana_View_Exception $e)
+                {
+                    //
+                }
+                $fp = fopen($dir.$file.'.php', 'w');
+                fwrite($fp, $view->render());
+                fclose($fp);
+            }
+        }
+
+        return TRUE;
     }
 
     protected function mustache($table, $columns)
@@ -57,40 +80,27 @@ class Codegen_Theme extends Codegen {
         $table      = explode('_', $table);
         $table      = Inflector::singular(end($table));
 
-        $content    = '{{#I18N}}';
-        foreach($columns as $key => $column)
+        $dir    = $this->repository.'mustache'.DIRECTORY_SEPARATOR.$table.'-';
+        $view   = new View(NULL, array('table' => $table, 'columns'=> $columns));
+
+        foreach($this->settings['layout'] as $file => $flag)
         {
-            if($key == $key_id)
+            if($flag === TRUE)
             {
-                $content .= "\n".'<input type="hidden" name="'.$key.'" id="'.$key.'" value="{{'.$key.'}}" />';
-                continue;
-            }
-            switch($column['data_type'])
-            {
-                case 'int':
-                case 'int unsigned':
-                case 'tinyint':
-                case 'tinyint unsigned':
-                    $content .= "\n".'<label for="'.$key.'">{{'.ucfirst(Inflector::humanize($key)).'}}</label><input type="text" name="'.$key.'" id="'.$key.'" value="{{'.$key.'}}" />';
-                    break;
-                case 'varchar':
-                    if($column['character_maximum_length'] < 256)
-                        $content .= "\n".'<label for="'.$key.'">{{'.ucfirst(Inflector::humanize($key)).'}}</label><input type="text" name="'.$key.'" id="'.$key.'" value="{{'.$key.'}}" />';
-                    else
-                        $content .= "\n".'<label for="'.$key.'">{{'.ucfirst(Inflector::humanize($key)).'}}</label><textarea name="'.$key.'" id="'.$key.'">{{'.$key.'}}</textarea>';
-                    break;
-                case 'text':
-                    $content .= "\n".'<label for="'.$key.'">{{'.ucfirst(Inflector::humanize($key)).'}}</label><textarea name="'.$key.'" id="'.$key.'">{{'.$key.'}}</textarea>';
-                    break;
-                default:
-                    $content .= "\n".'<label for="'.$key.'">{{'.ucfirst(Inflector::humanize($key)).'}}</label><input type="text" name="'.$key.'" id="'.$key.'" value="{{'.$key.'}}" />';
-                    break;
+                try
+                {
+                    $view->set_filename('codegen/mustache/'.$file);
+                }
+                catch (Kohana_View_Exception $e)
+                {
+                    //
+                }
+                $fp = fopen($dir.$file.'.mustache', 'w');
+                fwrite($fp, $view->render());
+                fclose($fp);
             }
         }
-        $fp = fopen($this->repository.'mustache'.DIRECTORY_SEPARATOR.$table.'.mustache', 'w');
-        fwrite($fp, $content."\n{{/I18N}}");
-        fclose($fp);
-        
+
         return TRUE;
     }
 

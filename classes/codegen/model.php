@@ -68,7 +68,7 @@ class Codegen_Model extends Codegen {
 
         $columns    = implode('\',\'', array_keys($columns));
         $content .= <<< CCC
-    protected \$_id = '{$this->module}';
+    protected \$_db = '{$this->module}';
 
     public function get(\$$key_id = NULL)
     {
@@ -138,7 +138,105 @@ CCC;
 
     protected function hive($table, $columns)
     {
-        //
+        $table_old = $table;
+
+        $key_id = key($columns);
+
+        $table      = explode('_', $table);
+        $table      = Inflector::singular(end($table));
+        $uctalbe    = '_'.ucfirst($table);
+
+        $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
+                        .strtr(parent::$config['license'], array(
+                            '$package'  => $this->module,
+                            '$year'     => date('Y'),
+                            '$see'      => 'Hive',
+                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends Hive {\n\n";
+
+        $rules = "\$meta->rules += array(\n";
+
+        $fields = "\$meta->fields += array(\n";
+
+        foreach($columns as $key => $column)
+        {
+            if(in_array($key, $this->settings['orm']['excludes'])) continue;
+
+            $rule = array();
+
+            if( ! $column['is_nullable'])
+                $rule[] = "'not_empty' => TRUE, ";
+
+            switch($column['data_type'])
+            {
+                case 'int':
+                case 'int unsigned':
+                    if($column['extra'] === 'auto_increment')
+                        $fields .= "            '$key'\t=> new Hive_Field_Auto,\n";
+                    else
+                        $fields .= "            '$key'\t=> new Hive_Field_Integer,\n";
+
+                    $rule[] = "'range' => array(".$column['min'].", ".$column['max']."), ";
+                    break;
+                case 'tinyint':
+                case 'tinyint unsigned':
+                    $fields .= "            '$key'\t=> new Hive_Field_Integer,\n";
+                    $rule[] = "'range' => array(".$column['min'].", ".$column['max']."), ";
+                    break;
+                case 'varchar':
+                case 'text':
+                case 'string':
+                    $rule[] = "'max_length' => array(".$column['character_maximum_length']."), ";
+                    $fields .= "            '$key'\t=> new Hive_Field_String,\n";
+                    break;
+                case 'enum':
+                    $rule[] = "'in_array' => array(array('".implode("', '", $column['options'])."')), ";
+                    $fields .= "            '$key'\t=> new Hive_Field_Enum,\n";
+                    break;
+                case 'timestamp':
+                    $fields .= "            '$key'\t=> new Hive_Field_Timestamp(array('auto_now_create' => TRUE,)),\n";
+                    break;
+            }
+
+            if($rule)
+            {
+                if($column['comment'])
+                    $rules .= "            // ".$column['comment']."\n";
+
+                $rules .= "            '$key'\t=> array(".implode('', $rule)."),\n";
+            }
+        }
+
+        $rules .= "        );";
+        $fields .= "        );";
+
+        $content .= <<< CCC
+    public static function init()
+    {
+        \$meta = parent::init();
+
+        // Name of the database to use
+        \$meta->db = '{$this->module}';
+
+        // Table name to use
+        \$meta->table = '$table_old';
+
+        {$fields}
+
+        \$meta->sorting['id'] = 'ASC';
+
+        {$rules}
+
+        return \$meta;
+    }
+
+} // END {$this->settings['directory']}$uctalbe
+
+CCC;
+        $fp = fopen($this->repository.'hive'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
+        fwrite($fp, $content);
+        fclose($fp);
+
+        return TRUE;
     }
 
     protected function orm($table, $columns)
@@ -203,7 +301,7 @@ CCC;
             $rules = "protected \$_rules = array(\n";
 
         $labels = "protected \$_labels = array(\n";
-        //var_export($columns);die;
+
         foreach($columns as $key => $column)
         {
             if(in_array($key, $this->settings['orm']['excludes'])) continue;

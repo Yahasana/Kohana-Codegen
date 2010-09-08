@@ -6,10 +6,10 @@ class Codegen_Controller extends Codegen {
     {
         if($config === NULL) $config = parent::$config['controller'];
 
-        $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['prefix']);
+        $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['directory']);
         $repos = parent::$config['repository'].'classes'.DIRECTORY_SEPARATOR.$repos.DIRECTORY_SEPARATOR;
 
-        $config['prefix'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['prefix'])));
+        $config['directory'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['directory'])));
 
         is_dir($repos) ? $this->empty_dir($repos) : mkdir($repos, 0755, TRUE);
 
@@ -32,7 +32,7 @@ class Codegen_Controller extends Codegen {
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
                             '$see'      => $this->settings['extends'],
-                        ))."\nclass {$this->settings['prefix']}{$uctalbe} extends {$this->settings['extends']} {\n\n";
+                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends {$this->settings['extends']} {\n\n";
         $content .= <<< CCC
     public function before()
     {
@@ -82,7 +82,7 @@ class Codegen_Controller extends Codegen {
         return \$data;
     }
 
-} // END {$this->settings['prefix']}$uctalbe
+} // END {$this->settings['directory']}$uctalbe
 
 CCC;
         $fp = fopen($this->repository.$table.'.php', 'w');

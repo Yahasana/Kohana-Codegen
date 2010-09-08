@@ -6,10 +6,10 @@ class Codegen_View extends Codegen {
     {
         if($config === NULL) $config = parent::$config['view'];
 
-        $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['prefix']);
+        $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['directory']);
         $repos = parent::$config['repository'].'classes'.DIRECTORY_SEPARATOR.$repos.DIRECTORY_SEPARATOR;
 
-        $config['prefix'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['prefix'])));
+        $config['directory'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['directory'])));
 
         foreach($config['driver'] as $driver)
         {
@@ -65,7 +65,7 @@ class Codegen_View extends Codegen {
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
                             '$see'      => 'Model',
-                        ))."\nclass {$this->settings['prefix']}{$uctalbe} extends Mustache {\n\n";
+                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends Mustache {\n\n";
         $content .= <<< CCC
     protected \$_template = '$table';
 
@@ -76,7 +76,7 @@ class Codegen_View extends Codegen {
         parent::__construct(\$template, \$view, \$partials);
     }
 
-} // END {$this->settings['prefix']}{$uctalbe}
+} // END {$this->settings['directory']}{$uctalbe}
 
 CCC;
         $fp = fopen($this->repository.'mustache'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
