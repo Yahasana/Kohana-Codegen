@@ -8,7 +8,7 @@
         if($key == $key_id)
         {
             ?>
-<input type="hidden" name="<?php echo $key; ?>" id="<?php echo $key; ?>" value="<?php echo '<?php echo $'.$key.'; ?>'; ?>" />
+<input type="hidden" name="<?php echo $key; ?>" id="<?php echo $key; ?>" value="{{<?php echo $key; ?>}}" />
 <?php
             continue;
         }

@@ -60,14 +60,15 @@ class Codegen_Theme extends Codegen {
                 try
                 {
                     $view->set_filename('codegen/php/'.$file);
+
+                    $fp = fopen($dir.$file.'.php', 'w');
+                    fwrite($fp, $view->render());
+                    fclose($fp);
                 }
                 catch (Kohana_View_Exception $e)
                 {
                     //
                 }
-                $fp = fopen($dir.$file.'.php', 'w');
-                fwrite($fp, $view->render());
-                fclose($fp);
             }
         }
 
@@ -90,14 +91,15 @@ class Codegen_Theme extends Codegen {
                 try
                 {
                     $view->set_filename('codegen/mustache/'.$file);
+
+                    $fp = fopen($dir.$file.'.mustache', 'w');
+                    fwrite($fp, $view->render());
+                    fclose($fp);
                 }
                 catch (Kohana_View_Exception $e)
                 {
                     //
                 }
-                $fp = fopen($dir.$file.'.mustache', 'w');
-                fwrite($fp, $view->render());
-                fclose($fp);
             }
         }
 
