@@ -34,9 +34,13 @@ class Codegen_Theme extends Codegen {
             if(method_exists($this, $driver))
             {
                 if($this->$driver($table, $columns))
+                {
                     $tmp .= "<span class='good'>&#9745; $driver</span><br />";
+                }
                 else
+                {
                     $tmp .= "<span class='notyet'>&#9746; $driver</span><br />";
+                }
             }
             else
             {
@@ -50,7 +54,7 @@ class Codegen_Theme extends Codegen {
     {
         $table  = explode('_', $table);
         $table  = Inflector::singular(end($table));
-        $dir    = $this->repository.'php'.DIRECTORY_SEPARATOR.$table.'-';
+        $dir    = $this->repository.__FUNCTION__.DIRECTORY_SEPARATOR.$table.'-';
         $view   = new View(NULL, array('table' => $table, 'columns'=> $columns));
 
         foreach($this->settings['layout'] as $file => $flag)
@@ -59,7 +63,7 @@ class Codegen_Theme extends Codegen {
             {
                 try
                 {
-                    $view->set_filename('codegen/php/'.$file);
+                    $view->set_filename('codegen'.DIRECTORY_SEPARATOR.__FUNCTION__.DIRECTORY_SEPARATOR.$file);
 
                     $fp = fopen($dir.$file.'.php', 'w');
                     fwrite($fp, $view->render());
@@ -77,11 +81,10 @@ class Codegen_Theme extends Codegen {
 
     protected function mustache($table, $columns)
     {
-        $key_id     = key($columns);
-        $table      = explode('_', $table);
-        $table      = Inflector::singular(end($table));
+        $table  = explode('_', $table);
+        $table  = Inflector::singular(end($table));
 
-        $dir    = $this->repository.'mustache'.DIRECTORY_SEPARATOR.$table.'-';
+        $dir    = $this->repository.__FUNCTION__.DIRECTORY_SEPARATOR.$table.'-';
         $view   = new View(NULL, array('table' => $table, 'columns'=> $columns));
 
         foreach($this->settings['layout'] as $file => $flag)
@@ -90,7 +93,7 @@ class Codegen_Theme extends Codegen {
             {
                 try
                 {
-                    $view->set_filename('codegen/mustache/'.$file);
+                    $view->set_filename('codegen'.DIRECTORY_SEPARATOR.__FUNCTION__.DIRECTORY_SEPARATOR.$file);
 
                     $fp = fopen($dir.$file.'.mustache', 'w');
                     fwrite($fp, $view->render());
