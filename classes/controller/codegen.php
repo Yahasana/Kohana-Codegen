@@ -29,11 +29,11 @@ class Controller_Codegen extends Kohana_Controller {
             $columns = $database->list_columns($table);
 
             $tables[$table] = array(
-                'controller'    => $controller->render($table, $columns),
-                'model'         => $model->render($table, $columns),
-                'view'          => $view->render($table, $columns),
-                'theme'         => $theme->render($table, $columns),
-                'i18n'          => $i18n->render($table, $columns),
+                'controller'    => $controller ? $controller->render($table, $columns) : '&oplus;',
+                'model'         => $model ? $model->render($table, $columns) : '&oplus;',
+                'view'          => $view ? $view->render($table, $columns) : '&oplus;',
+                'theme'         => $theme ? $theme->render($table, $columns) : '&oplus;',
+                'i18n'          => $i18n ? $i18n->render($table, $columns) : '&oplus;',
             );
         }
 

@@ -10,7 +10,7 @@ class Codegen_I18n extends Codegen {
 
         $repos = parent::$config['repository'].'i18n'.DIRECTORY_SEPARATOR;
 
-        is_dir($repos) ? $this->empty_dir($repos) : mkdir($repos, 0755, TRUE);
+        is_dir($repos) ? parent::empty_dir($repos) : mkdir($repos, 0755, TRUE);
 
         $this->repository   = $repos;
 

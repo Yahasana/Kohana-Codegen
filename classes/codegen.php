@@ -9,9 +9,9 @@ abstract class Codegen {
 		if ( ! Codegen::$config)
 		{
 			$config = Kohana::config('codegen');
-			
+
 			isset($_GET['m']) AND $config['module'] = $_GET['m'];
-			
+
 			$config['repository'] .= DIRECTORY_SEPARATOR.$config['module'].DIRECTORY_SEPARATOR;
 
             is_dir($config['repository']) OR mkdir($config['repository'], 755, TRUE);
@@ -19,13 +19,15 @@ abstract class Codegen {
 			Codegen::$config = $config;
 		}
 
+        if(empty(Codegen::$config[$type]['on'])) return NULL;
+
         // Set the class name
         $class = 'Codegen_'.$type;
 
 		return new $class(Codegen::$config[$type]);
 	}
 
-    protected function empty_dir($dir, $ext = EXT)
+    public static function empty_dir($dir, $ext = EXT)
     {
         try
         {

@@ -17,7 +17,7 @@ class Codegen_View extends Codegen {
             if(method_exists($this, $driver))
             {
                 $driver = $repos.$driver;
-                is_dir($driver) ? $this->empty_dir($driver) : mkdir($driver, 0755, TRUE);
+                is_dir($driver) ? parent::empty_dir($driver) : mkdir($driver, 0755, TRUE);
             }
         }
 

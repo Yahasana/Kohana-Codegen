@@ -24,7 +24,7 @@
         if($m === $module) continue;
         echo '<a href="'.URL::site('codegen?m='.$m).'">'.$m.'</a>';
     }
-?><i>&#9745 - generated successfully, &#9746 - driver not impletement, &#10008; - driver not exist</i></caption>
+?><i>&#9745 - successfully, &oplus; - disabled, &#9746 - driver not impletement, &#10008; - driver not exist</i></caption>
 <thead><tr><th>Data Tables</th><th>Controllers</th><th>Models</th><th>Views</th><th>Themes</th><th>I18n</th></tr></thead><tbody><?php
 
     foreach($tables as $table => $data)

@@ -11,7 +11,7 @@ class Codegen_Controller extends Codegen {
 
         $config['directory'] = str_replace(' ', '_', ucwords(str_replace('_', ' ', $config['directory'])));
 
-        is_dir($repos) ? $this->empty_dir($repos) : mkdir($repos, 0755, TRUE);
+        is_dir($repos) ? parent::empty_dir($repos) : mkdir($repos, 0755, TRUE);
 
         $this->repository   = $repos;
 

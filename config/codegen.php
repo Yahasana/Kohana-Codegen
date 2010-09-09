@@ -10,18 +10,18 @@ return array(
 
     // Controller
     'controller' => array(
-        'on'        => TRUE,
-        'directory' => 'controller',
-        'extends'   => 'Controller',
+        'on'        => FALSE,            # To generate controller classes or not
+        'directory' => 'controller',    # The directory you want to put your model classes
+        'extends'   => 'Controller',    # All controller classes will extends from this class
         'before'    => FALSE,
         'after'     => FALSE,
     ),
 
     // Model
     'model' => array(
-        'on'        => TRUE,
-        'directory' => 'model',
-        't_prefix'  => 't_',
+        'on'        => FALSE,    # To generate model classes or not
+        'directory' => 'model', # The directory you want to put your model classes
+        't_prefix'  => 't_',    # Remove the table prefix for more clean classes name
         'orm'       => array(
             'excludes'  => array('insert_time','insert_by','update_time','update_by','remark'),
             'validate'  => array(
@@ -34,19 +34,19 @@ return array(
 
     // View
     'view' => array(
-        'on'        => TRUE,
-        'directory' => 'view',
-        'extends'   => 'Page',
+        'on'        => TRUE,    # To generate view classes or not
+        'directory' => 'view',  # The directory you want to put your view classes
+        'extends'   => 'Page',  # All view classes will extends from this class
         'driver'    => array('php', 'mustache', 'twig', 'smarty')
     ),
 
     // Theme layout
     'theme' => array(
-        'on'        => TRUE,
+        'on'        => TRUE,    # To generate theme layout or not
         'layout'    => array(
-            'edit'  => TRUE,
-            'view'  => TRUE,
-            'list'  => TRUE
+            'edit'  => TRUE,    # To generate edit layout or not
+            'view'  => TRUE,    # To generate view layout or not
+            'list'  => TRUE     # To generate list layout or not
         ),
         'driver'    => array('php', 'mustache', 'twig', 'smarty')
     ),
@@ -54,8 +54,8 @@ return array(
 
     // I18n
     'i18n' => array(
-        'on'        => TRUE,
-        'standalone'=> FALSE
+        'on'        => TRUE,    # To generate i18n or not
+        'standalone'=> TRUE     # TRUE - one file for all tables, else each table has own file.
     ),
 
     'license' => <<<CCC
