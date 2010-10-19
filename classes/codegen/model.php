@@ -66,38 +66,106 @@ class Codegen_Model extends Codegen {
                             '$see'      => 'Model',
                         ))."\nclass {$this->settings['directory']}{$uctalbe} extends Model {\n\n";
 
+        $rule = array();
+        $last = end($columns);
+        foreach($columns as $key => $column)
+        {
+            if(in_array($key, $this->settings['model']['excludes'])) continue;
+
+            if( ! $column['is_nullable'])
+                $rule[$key] = "->rule('$key', 'not_empty')";
+
+            switch($column['data_type'])
+            {
+                case 'int':
+                case 'int unsigned':
+                    $rule[$key] = "->rule('$key', 'range', array(".$column['min'].", ".$column['max']."))";
+                    break;
+                case 'tinyint':
+                case 'tinyint unsigned':
+                    $rule[$key] = "->rule('$key', 'range', array(".$column['min'].", ".$column['max']."))";
+                    break;
+                case 'varchar':
+                case 'text':
+                case 'string':
+                    $rule[$key] = "->rule('$key', 'max_length', array(".$column['character_maximum_length']."))";
+                    break;
+                case 'enum':
+                    $rule[$key] = "->rule('$key', 'in_array', array(array('".implode("', '", $column['options'])."')))";
+                    break;
+                case 'timestamp':
+                    break;
+                default:
+                    //$rule[$key] = '';
+                    break;
+            }
+
+            if($column['comment'])
+                $rule[$key] .= "\t\t// ".$column['comment'];
+        }
+
+        if($rule = array_filter($rule))
+        {
+            $keys = array_keys($rule);
+            $last = end($keys);
+            if(strpos($rule[$last], '//'))
+                $rule[$last] = str_replace("\t\t//", ";\t\t//", $rule[$last]);
+            else
+                $rule[$last] .= ';';
+        }
+
+        $rules = $rule ? "\n\t\t\t".implode("\n\t\t\t", $rule) : '';
+
         $columns    = implode('\',\'', array_keys($columns));
+
         $content .= <<< CCC
     protected \$_db = '{$this->module}';
 
-    public function get(\$$key_id = NULL)
+    public function get(\$$key_id)
     {
-        return DB::select('$columns')
-            ->from('$table_old')
-            ->where('$key_id', '=', \$$key_id)
-            ->execute(\$this->_db);
+        return ctype_digit\$$key_id) 
+            ? DB::select('$columns')
+                ->from('$table_old')
+                ->where('$key_id', '=', \$$key_id)
+                ->execute(\$this->_db)
+                ->current()
+            : NULL;
     }
 
     public function append(array \$params)
     {
-        return DB::insert('$table_old', array_keys(\$params))
-            ->set(array_values(\$params))
-            ->execute(\$this->_db);
+        \$valid = Validate::factory(\$params)$rules
+
+        if(\$valid->check())
+        {
+            return DB::insert('$table_old', array_keys(\$params))
+                ->set(array_values(\$params))
+                ->execute(\$this->_db);
+        }
+        else
+        {
+            // Validation failed, collect the errors
+            return \$valid->errors();
+        }
     }
 
     public function update(\$$key_id, array \$params)
     {
-        return DB::update('$table_old')
-            ->set(\$params)
-            ->where('$key_id', '=', \$$key_id)
-            ->execute(\$this->_db);
+        return ctype_digit\$$key_id) 
+            ? DB::update('$table_old')
+                ->set(\$params)
+                ->where('$key_id', '=', \$$key_id)
+                ->execute(\$this->_db)
+            : NULL;
     }
 
     public function delete(\$$key_id)
     {
-        return DB::delete('$table_old')
-            ->where('$key_id', '=', \$$key_id)
-            ->execute(\$this->_db);
+        return ctype_digit\$$key_id) 
+            ? DB::delete('$table_old')
+                ->where('$key_id', '=', \$$key_id)
+                ->execute(\$this->_db)
+            : NULL;
     }
 
     public function lists(array \$params, \$page_from = 0, \$page_offset = 8, & \$total_rows = FALSE)

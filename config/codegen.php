@@ -10,7 +10,7 @@ return array(
 
     // Controller
     'controller' => array(
-        'on'        => FALSE,            # To generate controller classes or not
+        'on'        => TRUE,            # To generate controller classes or not
         'directory' => 'controller',    # The directory you want to put your model classes
         'extends'   => 'Controller',    # All controller classes will extends from this class
         'before'    => FALSE,
@@ -19,9 +19,12 @@ return array(
 
     // Model
     'model' => array(
-        'on'        => FALSE,    # To generate model classes or not
+        'on'        => TRUE,    # To generate model classes or not
         'directory' => 'model', # The directory you want to put your model classes
         't_prefix'  => 't_',    # Remove the table prefix for more clean classes name
+        'model'     => array(
+            'excludes'  => array('insert_time','insert_by','update_time','update_by','remark'),
+        ),
         'orm'       => array(
             'excludes'  => array('insert_time','insert_by','update_time','update_by','remark'),
             'validate'  => array(
