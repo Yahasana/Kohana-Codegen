@@ -54,11 +54,17 @@ return array(
         'driver'    => array('php', 'mustache', 'twig', 'smarty')
     ),
 
-
     // I18n
     'i18n' => array(
         'on'        => TRUE,    # To generate i18n or not
         'standalone'=> TRUE     # TRUE - one file for all tables, else each table has own file.
+    ),
+
+    // I18n
+    'api' => array(
+        'on'        => TRUE,    # To generate API or not
+        'directory' => 'controller_api',   # The directory you want to put your view classes
+        'extends'   => 'Oauth_Controller',    # All controller classes will extends from this class
     ),
 
     'license' => <<<CCC

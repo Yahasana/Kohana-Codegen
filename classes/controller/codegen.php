@@ -21,6 +21,7 @@ class Controller_Codegen extends Kohana_Controller {
         $view       = Codegen::factory('view');
         $theme      = Codegen::factory('theme');
         $i18n       = Codegen::factory('i18n');
+        $api       = Codegen::factory('api');
 
         $tables     = array();
 
@@ -34,6 +35,7 @@ class Controller_Codegen extends Kohana_Controller {
                 'view'          => $view ? $view->render($table, $columns) : '&oplus;',
                 'theme'         => $theme ? $theme->render($table, $columns) : '&oplus;',
                 'i18n'          => $i18n ? $i18n->render($table, $columns) : '&oplus;',
+                'api'           => $api ? $api->render($table, $columns) : '&oplus;',
             );
         }
 
