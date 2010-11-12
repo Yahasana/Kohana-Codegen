@@ -123,7 +123,7 @@ class Codegen_Model extends Codegen {
 
     public function get(\$$key_id)
     {
-        return ctype_digit\$$key_id) 
+        return ctype_digit(\$$key_id) 
             ? DB::select('$columns')
                 ->from('$table_old')
                 ->where('$key_id', '=', \$$key_id)
@@ -139,7 +139,7 @@ class Codegen_Model extends Codegen {
         if(\$valid->check())
         {
             return DB::insert('$table_old', array_keys(\$params))
-                ->set(array_values(\$params))
+                ->values(array_values(\$params))
                 ->execute(\$this->_db);
         }
         else
@@ -151,7 +151,7 @@ class Codegen_Model extends Codegen {
 
     public function update(\$$key_id, array \$params)
     {
-        return ctype_digit\$$key_id) 
+        return ctype_digit(\$$key_id) 
             ? DB::update('$table_old')
                 ->set(\$params)
                 ->where('$key_id', '=', \$$key_id)
@@ -161,7 +161,7 @@ class Codegen_Model extends Codegen {
 
     public function delete(\$$key_id)
     {
-        return ctype_digit\$$key_id) 
+        return ctype_digit(\$$key_id) 
             ? DB::delete('$table_old')
                 ->where('$key_id', '=', \$$key_id)
                 ->execute(\$this->_db)
