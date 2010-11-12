@@ -168,7 +168,7 @@ class Codegen_Model extends Codegen {
             : NULL;
     }
 
-    public function lists(array \$params, \$page_from = 0, \$page_offset = 8, & \$total_rows = FALSE)
+    public function lists(array \$params, &\$pagination, \$calc_total = TRUE)
     {
         \$sql = 'FROM `$table_old` ';
 
@@ -176,22 +176,23 @@ class Codegen_Model extends Codegen {
         //\$sql .= 'WHERE ... '
 
         // caculte the total rows
-        if(\$total_rows === TRUE)
+        if(\$calc_total === TRUE)
         {
-            \$total_rows = \$this->_db->query(Database::SELECT,
-                'SELECT COUNT(`$key_id`) num_rows '.\$sql
+            \$pagination->total_items = \$this->_db->query(Database::SELECT,
+                'SELECT COUNT(`$key_id`) num_rows '.\$sql, FALSE
             )->get('num_rows');
 
-            if(\$total_rows == 0)
+            if(\$pagination->total_items == 0)
                 return array();
         }
 
         // Customize order by from params
-        //\$sql .= 'ORDER BY ... '
+        if(isset(\$params['orderby']))
+            \$sql .= 'ORDER BY '.\$params['orderby'];
 
-        \$sql .= " LIMIT \$page_from, \$page_offset";
+        \$sql .= " LIMIT {\$pagination->offset}, {\$pagination->items_per_page}";
 
-        return \$this->_db->query(Database::SELECT, 'SELECT * '.\$sql);
+        return \$this->_db->query(Database::SELECT, 'SELECT * '.\$sql, FALSE);
     }
 
 } // END {$this->settings['directory']}$uctalbe
@@ -441,24 +442,27 @@ CCC;
 
     {$labels}
 
-    public function lists(array \$params, \$page_from = 0, \$page_offset = 8, & \$total_rows = FALSE)
+    public function lists(array \$params, & \$pagination, \$calc_total = TRUE)
     {
         // Customize where from params
         //\$this->where('', '', );
 
         // caculte the total rows
-        if(\$total_rows === TRUE)
+        if(\$calc_total === TRUE)
         {
-            \$total_rows = \$this->count_all();
+            \$pagination->total_items = \$this->count_all();
 
-            if(\$total_rows === 0)
+            if(\$pagination->total_items === 0)
                 return array();
         }
 
         // Customize order by from params
-        \$this->order_by('', 'ASC|DESC');
+        if(isset(\$params['orderby']))
+            \$this->order_by(key(\$params['orderby']), current(\$params['orderby']));
 
-        return \$this->limit(\$page_from)->offset(\$page_offset)->find_all();
+        return \$this->limit(\$page_from)
+            ->offset(\$page_offset)
+            ->find_all();
     }
 
 } // END {$this->settings['directory']}$uctalbe

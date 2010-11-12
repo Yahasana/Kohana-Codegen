@@ -71,11 +71,8 @@ class Codegen_Controller extends Codegen {
                 break;
         }
 
-        \$total_rows = TRUE;
+        \$data = \$this->model->lists(\$params, \$page);
 
-        \$data = \$this->model->lists(\$params, \$page->offset, \$page->items_per_page, \$total_rows);
-
-        \$page->total_items     = \$total_rows;
         \$data['orderby']       = \$orderby;
         \$data['pagination']    = \$page;
 
