@@ -123,7 +123,7 @@ class Codegen_Model extends Codegen {
 
     public function get(\$$key_id)
     {
-        return ctype_digit(\$$key_id) 
+        return ctype_digit(\$$key_id)
             ? DB::select('$columns')
                 ->from('$table_old')
                 ->where('$key_id', '=', \$$key_id)
@@ -151,7 +151,7 @@ class Codegen_Model extends Codegen {
 
     public function update(\$$key_id, array \$params)
     {
-        return ctype_digit(\$$key_id) 
+        return ctype_digit(\$$key_id)
             ? DB::update('$table_old')
                 ->set(\$params)
                 ->where('$key_id', '=', \$$key_id)
@@ -161,15 +161,17 @@ class Codegen_Model extends Codegen {
 
     public function delete(\$$key_id)
     {
-        return ctype_digit(\$$key_id) 
+        return ctype_digit(\$$key_id)
             ? DB::delete('$table_old')
                 ->where('$key_id', '=', \$$key_id)
                 ->execute(\$this->_db)
             : NULL;
     }
 
-    public function lists(array \$params, &\$pagination, \$calc_total = TRUE)
+    public function lists(array \$params, & \$pagination = NULL, \$calc_total = TRUE)
     {
+        if( ! \$pagination instanceOf Pagination) \$pagination = new Pagination;
+
         \$sql = 'FROM `$table_old` ';
 
         // Customize where from params
@@ -442,8 +444,10 @@ CCC;
 
     {$labels}
 
-    public function lists(array \$params, & \$pagination, \$calc_total = TRUE)
+    public function lists(array \$params, & \$pagination = NULL, \$calc_total = TRUE)
     {
+        if( ! \$pagination instanceOf Pagination) \$pagination = new Pagination;
+
         // Customize where from params
         //\$this->where('', '', );
 
@@ -460,8 +464,8 @@ CCC;
         if(isset(\$params['orderby']))
             \$this->order_by(key(\$params['orderby']), current(\$params['orderby']));
 
-        return \$this->limit(\$page_from)
-            ->offset(\$page_offset)
+        return \$this->limit(\$pagination->items_per_page)
+            ->offset(\$pagination->offset)
             ->find_all();
     }
 
