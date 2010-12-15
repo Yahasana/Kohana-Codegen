@@ -54,7 +54,7 @@ class Codegen_Theme extends Codegen {
     {
         $table  = explode('_', $table);
         $table  = Inflector::singular(end($table));
-        $dir    = $this->repository.__FUNCTION__.DIRECTORY_SEPARATOR.$table.'-';
+        $dir    = $this->repository.__FUNCTION__.DIRECTORY_SEPARATOR.$this->module.'-'.$table.'-';
         $view   = new View(NULL, array('table' => $table, 'columns'=> $columns));
 
         foreach($this->settings['layout'] as $file => $flag)
@@ -84,7 +84,7 @@ class Codegen_Theme extends Codegen {
         $table  = explode('_', $table);
         $table  = Inflector::singular(end($table));
 
-        $dir    = $this->repository.__FUNCTION__.DIRECTORY_SEPARATOR.$table.'-';
+        $dir    = $this->repository.__FUNCTION__.DIRECTORY_SEPARATOR.$this->module.'-'.$table.'-';
         $view   = new View(NULL, array('table' => $table, 'columns'=> $columns));
 
         foreach($this->settings['layout'] as $file => $flag)
@@ -94,7 +94,6 @@ class Codegen_Theme extends Codegen {
                 try
                 {
                     $view->set_filename('codegen'.DIRECTORY_SEPARATOR.__FUNCTION__.DIRECTORY_SEPARATOR.$file);
-
                     $fp = fopen($dir.$file.'.mustache', 'w');
                     fwrite($fp, $view->render());
                     fclose($fp);
@@ -111,7 +110,32 @@ class Codegen_Theme extends Codegen {
 
     protected function twig($table, $columns)
     {
-        //
+        $table  = explode('_', $table);
+        $table  = Inflector::singular(end($table));
+
+        $dir    = $this->repository.__FUNCTION__.DIRECTORY_SEPARATOR.$this->module.'-'.$table.'-';
+        $view   = new View(NULL, array('table' => $table, 'columns'=> $columns));
+
+        foreach($this->settings['layout'] as $file => $flag)
+        {
+            if($flag === TRUE)
+            {
+                try
+                {
+                    $view->set_filename('codegen'.DIRECTORY_SEPARATOR.__FUNCTION__.DIRECTORY_SEPARATOR.$file);
+
+                    $fp = fopen($dir.$file.'.twig', 'w');
+                    fwrite($fp, $view->render());
+                    fclose($fp);
+                }
+                catch (Kohana_View_Exception $e)
+                {
+                    //
+                }
+            }
+        }
+
+        return TRUE;
     }
 
     protected function smarty($table, $columns)

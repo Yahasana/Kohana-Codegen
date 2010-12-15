@@ -25,61 +25,37 @@ class Codegen_Controller extends Codegen {
         $key_id     = key($columns);
         $table      = explode('_', $table);
         $table      = Inflector::singular(end($table));
-        $uctalbe    = '_'.ucfirst($table);
+        $uctable    = '_'.ucfirst($table);
 
         $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
                         .strtr(parent::$config['license'], array(
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
                             '$see'      => $this->settings['extends'],
-                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends {$this->settings['extends']} {\n\n";
+                        ))."\nclass {$this->settings['directory']}{$uctable} extends {$this->settings['extends']} {\n\n";
         $content .= <<< CCC
     public function before()
     {
         parent::before();
 
-        \$this->model = new Model$uctalbe;
+        \$this->model = new Model$uctable;
     }
 
     public function action_index(\$$key_id = NULL)
     {
-        echo new View$uctalbe;
+        echo new View$uctable;
     }
 
     protected function lists(array \$params)
     {
-        \$page = new Pagination;
+        \$params['orderby'] = parent::get('sort', 'priority');
 
-        \$orderby = parent::get('sort', 0);
-
-        switch(\$orderby)
-        {
-            case 0:
-                \$params['orderby'] = 'priority DESC';
-                break;
-            case 1:
-                \$params['orderby'] = 'status ASC';
-                break;
-            case 2:
-                \$params['orderby'] = 'risk DESC';
-                break;
-            case 3:
-                \$params['orderby'] = 'update_time DESC';
-                break;
-            default:
-                \$params['orderby'] = 'priority DESC';
-                break;
-        }
-
-        \$data = \$this->model->lists(\$params, \$page);
-
-        \$data['orderby']       = \$orderby;
-        \$data['pagination']    = \$page;
+        \$data = \$this->model->lists(\$params);
 
         return \$data;
     }
 
-} // END {$this->settings['directory']}$uctalbe
+} // END {$this->settings['directory']}$uctable
 
 CCC;
         $fp = fopen($this->repository.$table.'.php', 'w');

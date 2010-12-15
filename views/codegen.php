@@ -41,7 +41,7 @@
 ?></tbody>
 <tfoot>
     <tr><th>Powered By <a href="http://github.com/Yahasana/Kohana-Codegen">Kohana Codegen</a></th>
-    <td colspan="5">Copyright &copy; sumh &lt;oalite at gmail dot com&gt;, version 1.0 <sup style="color:#A52A2A">&alpha;</sup></td>
+    <td colspan="6">Copyright &copy; sumh &lt;oalite at gmail dot com&gt;, version 1.0 <sup style="color:#A52A2A">&alpha;</sup></td>
     </tr>
 </tfoot>
 </table>

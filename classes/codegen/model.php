@@ -66,57 +66,77 @@ class Codegen_Model extends Codegen {
                             '$see'      => 'Model',
                         ))."\nclass {$this->settings['directory']}{$uctalbe} extends Model {\n\n";
 
-        $rule = array();
-        $last = end($columns);
+        $rule = $rule_insert = $rule_update = $comment = array();
+
         foreach($columns as $key => $column)
         {
-            if(in_array($key, $this->settings['model']['excludes'])) continue;
+            if(in_array($key, $this->settings['model']['excludes']) OR $key_id === $key) continue;
 
-            if( ! $column['is_nullable'])
+            if( ! $column['is_nullable'] AND ! isset($column['column_default']))
+            {
                 $rule[$key] = "->rule('$key', 'not_empty')";
+                $rule_update[$key]['not_empty'] = NULL;
+            }
 
             switch($column['data_type'])
             {
                 case 'int':
                 case 'int unsigned':
-                    $rule[$key] = "->rule('$key', 'range', array(".$column['min'].", ".$column['max']."))";
-                    break;
                 case 'tinyint':
                 case 'tinyint unsigned':
-                    $rule[$key] = "->rule('$key', 'range', array(".$column['min'].", ".$column['max']."))";
+                    $rule_insert[$key]['range'] = $rule_update[$key]['range'] = "array({$column['min']}, {$column['max']})";
+                    break;
+                case 'decimal':
+                case 'decimal unsigned':
+                    $rule_insert[$key]['decimal'] = $rule_update[$key]['decimal'] = NULL;
                     break;
                 case 'varchar':
                 case 'text':
                 case 'string':
-                    $rule[$key] = "->rule('$key', 'max_length', array(".$column['character_maximum_length']."))";
+                    $rule_insert[$key]['decimal'] = $rule_update[$key]['decimal'] = "array({$column['character_maximum_length']})";
                     break;
                 case 'enum':
-                    $rule[$key] = "->rule('$key', 'in_array', array(array('".implode("', '", $column['options'])."')))";
+                    $rule_insert[$key]['in_array'] = $rule_update[$key]['in_array'] = "array(array('".implode("', '", $column['options'])."'))";
                     break;
                 case 'timestamp':
                     break;
                 default:
-                    //$rule[$key] = '';
+                    //$rule[$key] = "->rule('$key', '{$column['data_type']}', array())".print_r($column,true);
+                    $rule[$key] = '';
                     break;
             }
 
             if($column['comment'])
-                $rule[$key] .= "\t\t// ".$column['comment'];
+                $comment[$key] = "$key: ".$column['comment'];
         }
 
         if($rule = array_filter($rule))
         {
-            $keys = array_keys($rule);
-            $last = end($keys);
-            if(strpos($rule[$last], '//'))
-                $rule[$last] = str_replace("\t\t//", ";\t\t//", $rule[$last]);
-            else
-                $rule[$last] .= ';';
+            //$keys = array_keys($rule);
+            //$last = end($keys);
+            //if(strpos($rule[$last], '//'))
+            //    $rule[$last] = str_replace("\t\t//", ";\t\t//", $rule[$last]);
+            //else
+            //    $rule[$last] .= ';';
         }
 
         $rules = $rule ? "\n\t\t\t".implode("\n\t\t\t", $rule) : '';
 
+        $comment = $comment ? "\n\t *      ".implode("\n\t *      ", $comment)."\n\t *" : '';
+
         $columns    = implode('\',\'', array_keys($columns));
+
+        $rule_insert = '$rules = array_intersect_key('.preg_replace(
+                array('#\n\s+array#m', '#,\n\s+\),#', '#=> array \(\n\s+\'#', '#NULL,\n\s+#', '#\n#'),
+                array('array', '),', "\t\t=> array ('", 'NULL, ', "\n        "),
+                var_export($rule_insert, TRUE))
+            .', $params);';
+
+        $rule_update = '$rules = array_intersect_key('.preg_replace(
+                array('#\n\s+array#m', '#,\n\s+\),#', '#=> array \(\n\s+\'#', '#NULL,\n\s+#', '#\n#'),
+                array('array', '),', "\t=> array ('", 'NULL, ', "\n        "),
+                var_export($rule_update, TRUE))
+            .', $params);';
 
         $content .= <<< CCC
     protected \$_db = '{$this->module}';
@@ -132,14 +152,30 @@ class Codegen_Model extends Codegen {
             : NULL;
     }
 
+    /**
+     * Insert $table
+     *
+     * @access	public
+     * @param	array	\$params$comment
+     * @return	mix     array(insert_id, affect_rows) or valid errors infomation
+     */
     public function append(array \$params)
     {
-        \$valid = Validate::factory(\$params)$rules
+        \$valid = Validate::factory(\$params)$rules;
+
+        $rule_insert
+
+        foreach(\$rules as \$field => \$rule)
+            foreach(\$rule as \$r => \$p)
+                \$valid->rule(\$field, \$r, \$p);
 
         if(\$valid->check())
         {
-            return DB::insert('$table_old', array_keys(\$params))
-                ->values(array_values(\$params))
+            \$valid = \$valid->as_array();
+            \$valid['insert_by'] = '';
+            \$valid['insert_time'] = REQUEST_TIME;
+            return DB::insert('$table_old', array_keys(\$valid))
+                ->values(array_values(\$valid))
                 ->execute(\$this->_db);
         }
         else
@@ -149,14 +185,39 @@ class Codegen_Model extends Codegen {
         }
     }
 
+    /**
+     * Update $table
+     * $comment
+     * @access	public
+     * @param	int	    \$$key_id
+     * @param	array	\$params
+     * @return	mix     update rows affect or valid errors infomation
+     */
     public function update(\$$key_id, array \$params)
     {
-        return ctype_digit(\$$key_id)
-            ? DB::update('$table_old')
-                ->set(\$params)
+        \$valid = Validate::factory(\$params);
+
+        $rule_update
+
+        foreach(\$rules as \$field => \$rule)
+            foreach(\$rule as \$r => \$p)
+                \$valid->rule(\$field, \$r, \$p);
+
+        if(\$valid->check())
+        {
+            \$valid = \$valid->as_array();
+            \$valid['update_by'] = '';
+            \$valid['update_time'] = REQUEST_TIME;
+            return DB::update('$table_old')
+                ->set(\$valid)
                 ->where('$key_id', '=', \$$key_id)
-                ->execute(\$this->_db)
-            : NULL;
+                ->execute(\$this->_db);
+        }
+        else
+        {
+            // Validation failed, collect the errors
+            return \$valid->errors();
+        }
     }
 
     public function delete(\$$key_id)
@@ -168,6 +229,15 @@ class Codegen_Model extends Codegen {
             : NULL;
     }
 
+    /**
+     * List {$table}s
+     *
+     * @access	public
+     * @param	array	\$params
+     * @param	Pagination	\$pagination	default [ NULL ] passed by reference
+     * @param	boolean	\$calc_total	default [ TRUE ] is needed to caculate the total records for pagination
+     * @return	array   array('{$table}s' => data, 'orderby' => \$params['orderby'], 'pagination' => \$pagination)
+     */
     public function lists(array \$params, & \$pagination = NULL, \$calc_total = TRUE)
     {
         if( ! \$pagination instanceOf Pagination) \$pagination = new Pagination;
@@ -184,17 +254,43 @@ class Codegen_Model extends Codegen {
                 'SELECT COUNT(`$key_id`) num_rows '.\$sql, FALSE
             )->get('num_rows');
 
+            \$data['pagination'] = \$pagination;
+
             if(\$pagination->total_items == 0)
-                return array();
+            {
+                \$data['{$table}s'] = array();
+                isset(\$params['orderby']) AND \$data['orderby'] = \$params['orderby'];
+                return \$data;
+            }
         }
 
         // Customize order by from params
         if(isset(\$params['orderby']))
-            \$sql .= 'ORDER BY '.\$params['orderby'];
+        {
+            switch(\$params['orderby'])
+            {
+                case 'priority':
+                    \$sql .= ' ORDER BY priority DESC';
+                    break;
+                case 'status':
+                    \$sql .= ' ORDER BY status DESC';
+                    break;
+                case 'update':
+                    \$sql .= ' ORDER BY update_time DESC';
+                    break;
+                default:
+                    \$params['orderby'] = 'priority';
+                    \$sql .= ' ORDER BY priority DESC';
+                    break;
+            }
+            \$data['orderby'] = \$params['orderby'];
+        }
 
         \$sql .= " LIMIT {\$pagination->offset}, {\$pagination->items_per_page}";
 
-        return \$this->_db->query(Database::SELECT, 'SELECT * '.\$sql, FALSE);
+        \$data['{$table}s'] = \$this->_db->query(Database::SELECT, 'SELECT * '.\$sql, FALSE);
+
+        return \$data;
     }
 
 } // END {$this->settings['directory']}$uctalbe
@@ -234,7 +330,7 @@ CCC;
 
             $rule = array();
 
-            if( ! $column['is_nullable'])
+            if( ! $column['is_nullable'] AND ! isset($column['column_default']))
                 $rule[] = "'not_empty' => TRUE, ";
 
             switch($column['data_type'])
@@ -379,7 +475,7 @@ CCC;
 
             $rule = array();
 
-            if( ! $column['is_nullable'])
+            if( ! $column['is_nullable'] AND ! isset($column['column_default']))
                 $rule[] = "'not_empty' => TRUE, ";
 
             switch($column['data_type'])

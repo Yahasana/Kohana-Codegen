@@ -57,7 +57,7 @@ return array(
     // I18n
     'i18n' => array(
         'on'        => TRUE,    # To generate i18n or not
-        'standalone'=> TRUE     # TRUE - one file for all tables, else each table has own file.
+        'standalone'=> FALSE     # TRUE - one file for all tables, else each table has own file.
     ),
 
     // I18n
@@ -71,11 +71,11 @@ return array(
 /**
  * description...
  *
- * @author		example <example@example.com>
+ * @author		sumh <oalite@gmail.com>
  * @package		\$package
- * @copyright	(c) \$year example team, All rights reserved.
- * @license		http://www.example.com/license.txt
- * @link		http://www.example.com
+ * @copyright	(c) \$year OALite team, All rights reserved.
+ * @license		http://www.oalite.com/license.txt
+ * @link		http://www.oalite.com
  * @see			\$see
  * *
  */

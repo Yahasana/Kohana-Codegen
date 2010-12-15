@@ -53,8 +53,8 @@ class Codegen_I18n extends Codegen {
         $content    = "\n\n    // $table";
         foreach($columns as $key => $column)
         {
-            $key = ucfirst(Inflector::humanize($key));
-            $content .= "\n    '".$key."'\t\t=> '".$key.'\',';
+            $key = ucwords(Inflector::humanize($key));
+            $content .= "\n    '".str_replace(' ','',$key)."'\t\t=> '".$key.'\',';
 
         }
 
