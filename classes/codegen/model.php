@@ -93,7 +93,7 @@ class Codegen_Model extends Codegen {
                 case 'varchar':
                 case 'text':
                 case 'string':
-                    $rule_insert[$key]['decimal'] = $rule_update[$key]['decimal'] = "array({$column['character_maximum_length']})";
+                    $rule_insert[$key]['max_length'] = $rule_update[$key]['max_length'] = "array({$column['character_maximum_length']})";
                     break;
                 case 'enum':
                     $rule_insert[$key]['in_array'] = $rule_update[$key]['in_array'] = "array(array('".implode("', '", $column['options'])."'))";
