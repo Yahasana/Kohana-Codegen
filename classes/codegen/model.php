@@ -84,19 +84,19 @@ class Codegen_Model extends Codegen {
                 case 'int unsigned':
                 case 'tinyint':
                 case 'tinyint unsigned':
-                    $rule_insert[$key]['range'] = $rule_update[$key]['range'] = "array({$column['min']}, {$column['max']})";
+                    $rule_insert[$key]['range'] = $rule_update[$key]['range'] = array($column['min'], $column['max']);
                     break;
                 case 'decimal':
                 case 'decimal unsigned':
-                    $rule_insert[$key]['decimal'] = $rule_update[$key]['decimal'] = NULL;
+                    $rule_insert[$key]['numeric'] = $rule_update[$key]['numeric'] = array($column['numeric_scale'], $column['numeric_precision']);
                     break;
                 case 'varchar':
                 case 'text':
                 case 'string':
-                    $rule_insert[$key]['max_length'] = $rule_update[$key]['max_length'] = "array({$column['character_maximum_length']})";
+                    $rule_insert[$key]['max_length'] = $rule_update[$key]['max_length'] = array($column['character_maximum_length']);
                     break;
                 case 'enum':
-                    $rule_insert[$key]['in_array'] = $rule_update[$key]['in_array'] = "array(array('".implode("', '", $column['options'])."'))";
+                    $rule_insert[$key]['in_array'] = $rule_update[$key]['in_array'] = array($column['options']);
                     break;
                 case 'timestamp':
                     break;
@@ -127,14 +127,14 @@ class Codegen_Model extends Codegen {
         $columns    = implode('\',\'', array_keys($columns));
 
         $rule_insert = '$rules = array_intersect_key('.preg_replace(
-                array('#\n\s+array#m', '#,\n\s+\),#', '#=> array \(\n\s+\'#', '#NULL,\n\s+#', '#\n#'),
-                array('array', '),', "\t\t=> array ('", 'NULL, ', "\n        "),
+                array('#\n\s+array#m', '#\(\n\s+\'#', '#\(\n\s+\d\s=\>\s#', '#,\n\s+\d\s=\>\s#', '#,\n\s+\)#', '#\'(\d+)\'#', '#\n#', '#,\),\)#'),
+                array('array', '(\'', "(", ',', ",)", '$1', "\n        ", '))'),
                 var_export($rule_insert, TRUE))
             .', $params);';
 
         $rule_update = '$rules = array_intersect_key('.preg_replace(
-                array('#\n\s+array#m', '#,\n\s+\),#', '#=> array \(\n\s+\'#', '#NULL,\n\s+#', '#\n#'),
-                array('array', '),', "\t=> array ('", 'NULL, ', "\n        "),
+                array('#\n\s+array#m', '#\(\n\s+\'#', '#\(\n\s+\d\s=\>\s#', '#,\n\s+\d\s=\>\s#', '#,\n\s+\)#', '#\'(\d+)\'#', '#\n#', '#,\),\)#', '#=\> NULL,\n\s+#'),
+                array('array', '(\'', "(", ',', ",)", '$1', "\n        ", '))', '=> NULL, '),
                 var_export($rule_update, TRUE))
             .', $params);';
 
@@ -157,7 +157,7 @@ class Codegen_Model extends Codegen {
      *
      * @access	public
      * @param	array	\$params$comment
-     * @return	mix     array(insert_id, affect_rows) or valid errors infomation
+     * @return	mix     array(insert_id, affect_rows) or validate object
      */
     public function append(array \$params)
     {
@@ -172,7 +172,12 @@ class Codegen_Model extends Codegen {
         if(\$valid->check())
         {
             \$valid = \$valid->as_array();
-            \$valid['insert_by'] = '';
+
+            foreach(\$valid as \$key => \$val)
+            {
+                if(\$val === '') \$valid[\$key] = NULL;
+            }
+
             \$valid['insert_time'] = REQUEST_TIME;
             return DB::insert('$table_old', array_keys(\$valid))
                 ->values(array_values(\$valid))
@@ -181,17 +186,17 @@ class Codegen_Model extends Codegen {
         else
         {
             // Validation failed, collect the errors
-            return \$valid->errors();
+            return \$valid;
         }
     }
 
     /**
      * Update $table
-     * $comment
+     *
      * @access	public
      * @param	int	    \$$key_id
-     * @param	array	\$params
-     * @return	mix     update rows affect or valid errors infomation
+     * @param	array	\$params$comment
+     * @return	mix     update rows affect or validate object
      */
     public function update(\$$key_id, array \$params)
     {
@@ -206,7 +211,12 @@ class Codegen_Model extends Codegen {
         if(\$valid->check())
         {
             \$valid = \$valid->as_array();
-            \$valid['update_by'] = '';
+
+            foreach(\$valid as \$key => \$val)
+            {
+                if(\$val === '') \$valid[\$key] = NULL;
+            }
+
             \$valid['update_time'] = REQUEST_TIME;
             return DB::update('$table_old')
                 ->set(\$valid)
@@ -216,7 +226,7 @@ class Codegen_Model extends Codegen {
         else
         {
             // Validation failed, collect the errors
-            return \$valid->errors();
+            return \$valid;
         }
     }
 
@@ -233,10 +243,10 @@ class Codegen_Model extends Codegen {
      * List {$table}s
      *
      * @access	public
-     * @param	array	\$params
+     * @param	array	    \$params
      * @param	Pagination	\$pagination	default [ NULL ] passed by reference
-     * @param	boolean	\$calc_total	default [ TRUE ] is needed to caculate the total records for pagination
-     * @return	array   array('{$table}s' => data, 'orderby' => \$params['orderby'], 'pagination' => \$pagination)
+     * @param	boolean	    \$calc_total	default [ TRUE ] is needed to caculate the total records for pagination
+     * @return	array       array('{$table}s' => data, 'orderby' => \$params['orderby'], 'pagination' => \$pagination)
      */
     public function lists(array \$params, & \$pagination = NULL, \$calc_total = TRUE)
     {

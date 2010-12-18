@@ -25,27 +25,34 @@ class Codegen_Controller extends Codegen {
         $key_id     = key($columns);
         $table      = explode('_', $table);
         $table      = Inflector::singular(end($table));
-        $uctable    = '_'.ucfirst($table);
+        $uctable    = ucfirst($table);
 
         $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
                         .strtr(parent::$config['license'], array(
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
                             '$see'      => $this->settings['extends'],
-                        ))."\nclass {$this->settings['directory']}{$uctable} extends {$this->settings['extends']} {\n\n";
+                        ))."\nclass {$this->settings['directory']}_{$uctable} extends {$this->settings['extends']} {\n\n";
         $content .= <<< CCC
     public function before()
     {
         parent::before();
 
-        \$this->model = new Model$uctable;
+        \$this->model = new Model_$uctable;
     }
 
     public function action_index(\$$key_id = NULL)
     {
-        echo new View$uctable;
+        echo new View_$uctable;
     }
 
+    /**
+     * $uctable lists
+     *
+     * @access	protected
+     * @param	array	\$params
+     * @return	array   array('{$table}s' => data, 'orderby' => \$params['orderby'], 'pagination' => \$pagination)
+     */
     protected function lists(array \$params)
     {
         \$params['orderby'] = parent::get('sort', 'priority');
@@ -55,7 +62,7 @@ class Codegen_Controller extends Codegen {
         return \$data;
     }
 
-} // END {$this->settings['directory']}$uctable
+} // END {$this->settings['directory']}_$uctable
 
 CCC;
         $fp = fopen($this->repository.$table.'.php', 'w');
