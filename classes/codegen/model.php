@@ -55,8 +55,15 @@ class Codegen_Model extends Codegen {
 
         $key_id = key($columns);
 
-        $table      = explode('_', $table);
-        $table      = Inflector::singular(end($table));
+        $tables     = explode('_', $table);
+        $table      = Inflector::singular(end($tables));
+        $file       = $this->repository.'model'.DIRECTORY_SEPARATOR.$table.'.php';
+
+        if(file_exists($file))
+        {
+            $file = $this->repository.'model'.DIRECTORY_SEPARATOR.prev($tables).$table.'.php';
+        }
+
         $uctalbe    = '_'.ucfirst($table);
 
         $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
@@ -65,6 +72,8 @@ class Codegen_Model extends Codegen {
                             '$year'     => date('Y'),
                             '$see'      => 'Model',
                         ))."\nclass {$this->settings['directory']}{$uctalbe} extends Model {\n\n";
+
+        $datatime = '';
 
         $rule = $rule_insert = $rule_update = $comment = array();
 
@@ -85,10 +94,22 @@ class Codegen_Model extends Codegen {
                 case 'tinyint':
                 case 'tinyint unsigned':
                     $rule_insert[$key]['range'] = $rule_update[$key]['range'] = array($column['min'], $column['max']);
+                    if(preg_match('/\_date$/i', $key))
+                    {
+                        $datatime .= "
+        if(isset(\$params['$key']) AND \$timetamp = strtotime(\$params['$key']))
+            \$params['$key'] = \$timetamp;
+        else
+            unset(\$params['$key']);\n";
+                    }
                     break;
                 case 'decimal':
                 case 'decimal unsigned':
                     $rule_insert[$key]['numeric'] = $rule_update[$key]['numeric'] = array($column['numeric_scale'], $column['numeric_precision']);
+                    break;
+                case 'double':
+                case 'double unsigned':
+                    $rule_insert[$key]['numeric'] = $rule_update[$key]['numeric'] = NULL;
                     break;
                 case 'varchar':
                 case 'text':
@@ -127,14 +148,14 @@ class Codegen_Model extends Codegen {
         $columns    = implode('\',\'', array_keys($columns));
 
         $rule_insert = '$rules = array_intersect_key('.preg_replace(
-                array('#\n\s+array#m', '#\(\n\s+\'#', '#\(\n\s+\d\s=\>\s#', '#,\n\s+\d\s=\>\s#', '#,\n\s+\)#', '#\'(\d+)\'#', '#\n#', '#,\),\)#'),
-                array('array', '(\'', "(", ',', ",)", '$1', "\n        ", '))'),
+                array('#\n\s+array#m', '#\(\n\s+\'#', '#\(\n\s+\d\s=\>\s#', '#,\n\s+\d\s=\>\s#', '#,\n\s+\)#', '#\'(\d+)\'#', '#  #', '#\n#', '#,\),\)#'),
+                array('array', '(\'', "(", ',', ",)", '$1', '    ', "\n        ", '))'),
                 var_export($rule_insert, TRUE))
             .', $params);';
 
         $rule_update = '$rules = array_intersect_key('.preg_replace(
-                array('#\n\s+array#m', '#\(\n\s+\'#', '#\(\n\s+\d\s=\>\s#', '#,\n\s+\d\s=\>\s#', '#,\n\s+\)#', '#\'(\d+)\'#', '#\n#', '#,\),\)#', '#=\> NULL,\n\s+#'),
-                array('array', '(\'', "(", ',', ",)", '$1', "\n        ", '))', '=> NULL, '),
+                array('#\n\s+array#m', '#\(\n\s+\'#', '#\(\n\s+\d\s=\>\s#', '#,\n\s+\d\s=\>\s#', '#,\n\s+\)#', '#\'(\d+)\'#', '#  #', '#\n#', '#,\),\)#', '#=\> NULL,\n\s+#'),
+                array('array', '(\'', "(", ',', ",)", '$1', '    ', "\n        ", '))', '=> NULL, '),
                 var_export($rule_update, TRUE))
             .', $params);';
 
@@ -157,10 +178,10 @@ class Codegen_Model extends Codegen {
      *
      * @access	public
      * @param	array	\$params$comment
-     * @return	mix     array(insert_id, affect_rows) or validate object
+     * @return	mix     Validated data or validate object
      */
     public function append(array \$params)
-    {
+    {{$datatime}
         \$valid = Validate::factory(\$params)$rules;
 
         $rule_insert
@@ -178,16 +199,18 @@ class Codegen_Model extends Codegen {
                 if(\$val === '') \$valid[\$key] = NULL;
             }
 
-            \$valid['insert_time'] = REQUEST_TIME;
-            return DB::insert('$table_old', array_keys(\$valid))
+            //\$valid['insert_by']    = \$_SESSION['user_id'];
+            \$valid['insert_time']  = REQUEST_TIME;
+            \$insert = DB::insert('$table_old', array_keys(\$valid))
                 ->values(array_values(\$valid))
                 ->execute(\$this->_db);
+            \$valid['$key_id'] = \$insert[0];
+            \$valid['affected_rows'] = \$insert[1];
+            \$valid                 += \$params;
         }
-        else
-        {
-            // Validation failed, collect the errors
-            return \$valid;
-        }
+
+        // Validation data, or collection of the errors
+        return \$valid;
     }
 
     /**
@@ -196,10 +219,10 @@ class Codegen_Model extends Codegen {
      * @access	public
      * @param	int	    \$$key_id
      * @param	array	\$params$comment
-     * @return	mix     update rows affect or validate object
+     * @return	mix     Validated data or validate object
      */
     public function update(\$$key_id, array \$params)
-    {
+    {{$datatime}
         \$valid = Validate::factory(\$params);
 
         $rule_update
@@ -217,17 +240,18 @@ class Codegen_Model extends Codegen {
                 if(\$val === '') \$valid[\$key] = NULL;
             }
 
-            \$valid['update_time'] = REQUEST_TIME;
-            return DB::update('$table_old')
+            //\$valid['update_by']     = \$_SESSION['user_id'];
+            \$valid['update_time']   = REQUEST_TIME;
+            \$valid['affected_rows'] = DB::update('$table_old')
                 ->set(\$valid)
                 ->where('$key_id', '=', \$$key_id)
                 ->execute(\$this->_db);
+
+            \$valid                 += \$params;
         }
-        else
-        {
-            // Validation failed, collect the errors
-            return \$valid;
-        }
+
+        // Validation data, or collection of the errors
+        return \$valid;
     }
 
     public function delete(\$$key_id)
@@ -266,7 +290,7 @@ class Codegen_Model extends Codegen {
 
             \$data['pagination'] = \$pagination;
 
-            if(\$pagination->total_items == 0)
+            if(\$pagination->total_items === 0)
             {
                 \$data['{$table}s'] = array();
                 isset(\$params['orderby']) AND \$data['orderby'] = \$params['orderby'];
@@ -306,7 +330,7 @@ class Codegen_Model extends Codegen {
 } // END {$this->settings['directory']}$uctalbe
 
 CCC;
-        $fp = fopen($this->repository.'model'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
+        $fp = fopen($file, 'w');
         fwrite($fp, $content);
         fclose($fp);
 

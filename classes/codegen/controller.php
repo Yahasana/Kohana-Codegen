@@ -46,6 +46,33 @@ class Codegen_Controller extends Codegen {
         echo new View_$uctable;
     }
 
+    public function action_append()
+    {
+        \$data = array();
+        if(empty(\$_POST))
+        {
+            // prepare others data
+        }
+        else
+        {
+            \$valid = empty(\$_POST['$key_id']) 
+                ? \$this->model->append(\$_POST) 
+                : \$this->model->update(\$_POST['$key_id'], \$_POST);
+                
+            if(\$valid instanceOf Validate)
+            {
+                \$data = \$valid->as_array();
+                \$data['errors'] = \$valid->errors('validate');
+            }
+            else
+            {
+                \$data = \$valid;
+            }
+        }
+        
+        //\$this->render('view-file', \$data);
+    }
+
     /**
      * $uctable lists
      *
