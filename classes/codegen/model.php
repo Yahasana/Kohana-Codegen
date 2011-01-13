@@ -70,8 +70,8 @@ class Codegen_Model extends Codegen {
                         .strtr(parent::$config['license'], array(
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
-                            '$see'      => 'Model',
-                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends Model {\n\n";
+                            '$see'      => $this->settings['extends'],
+                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends {$this->settings['extends']} {\n\n";
 
         $datatime = '';
 
@@ -199,14 +199,17 @@ class Codegen_Model extends Codegen {
                 if(\$val === '') \$valid[\$key] = NULL;
             }
 
-            //\$valid['insert_by']    = \$_SESSION['user_id'];
+            \$valid['company_id']   = (int) \$params['company_id'];
+            \$valid['insert_by']    = OALite::\$user['uid'];
             \$valid['insert_time']  = REQUEST_TIME;
+
             \$insert = DB::insert('$table_old', array_keys(\$valid))
                 ->values(array_values(\$valid))
                 ->execute(\$this->_db);
+
+            \$valid                 += \$params;
             \$valid['$key_id'] = \$insert[0];
             \$valid['affected_rows'] = \$insert[1];
-            \$valid                 += \$params;
         }
 
         // Validation data, or collection of the errors
@@ -240,14 +243,15 @@ class Codegen_Model extends Codegen {
                 if(\$val === '') \$valid[\$key] = NULL;
             }
 
-            //\$valid['update_by']     = \$_SESSION['user_id'];
+            \$valid['update_by']     = OALite::\$user['uid'];
             \$valid['update_time']   = REQUEST_TIME;
+
             \$valid['affected_rows'] = DB::update('$table_old')
                 ->set(\$valid)
                 ->where('$key_id', '=', \$$key_id)
                 ->execute(\$this->_db);
 
-            \$valid                 += \$params;
+            \$valid += \$params;
         }
 
         // Validation data, or collection of the errors
@@ -272,7 +276,7 @@ class Codegen_Model extends Codegen {
      * @param	boolean	    \$calc_total	default [ TRUE ] is needed to caculate the total records for pagination
      * @return	array       array('{$table}s' => data, 'orderby' => \$params['orderby'], 'pagination' => \$pagination)
      */
-    public function lists(array \$params, & \$pagination = NULL, \$calc_total = TRUE)
+    public function lists(array \$params, \$pagination = NULL, \$calc_total = TRUE)
     {
         if( ! \$pagination instanceOf Pagination) \$pagination = new Pagination;
 
