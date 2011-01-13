@@ -14,7 +14,7 @@
 11. Customize i18n key-value pairs generation in `classes/codegen/i18n.php`
 
 ### Snapshot ###
-![Kohana Codegen Snapshot!](/Yahasana/Kohana-Codegen/blob/master/codegen.png)
+![Kohana Codegen Snapshot!](/Yahasana/Kohana-Codegen/raw/master/codegen.png)
 
 ### ISC License (ISCL) ###
 
