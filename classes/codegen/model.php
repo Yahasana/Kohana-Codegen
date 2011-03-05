@@ -199,9 +199,8 @@ class Codegen_Model extends Codegen {
                 if(\$val === '') \$valid[\$key] = NULL;
             }
 
-            \$valid['company_id']   = (int) \$params['company_id'];
-            \$valid['insert_by']    = OALite::\$user['uid'];
-            \$valid['insert_time']  = REQUEST_TIME;
+            //\$valid['insert_by']     = \$_SESSION['user'];
+            \$valid['insert_time']  = \$_SERVER['REQUEST_TIME'];
 
             \$insert = DB::insert('$table_old', array_keys(\$valid))
                 ->values(array_values(\$valid))
@@ -243,8 +242,8 @@ class Codegen_Model extends Codegen {
                 if(\$val === '') \$valid[\$key] = NULL;
             }
 
-            \$valid['update_by']     = OALite::\$user['uid'];
-            \$valid['update_time']   = REQUEST_TIME;
+            //\$valid['update_by']     = \$_SESSION['user'];
+            \$valid['update_time']   = \$_SERVER['REQUEST_TIME'];
 
             \$valid['affected_rows'] = DB::update('$table_old')
                 ->set(\$valid)
@@ -278,7 +277,7 @@ class Codegen_Model extends Codegen {
      */
     public function lists(array \$params, \$pagination = NULL, \$calc_total = TRUE)
     {
-        if( ! \$pagination instanceOf Pagination) \$pagination = new Pagination;
+        \$pagination instanceOf Pagination OR \$pagination = new Pagination;
 
         \$sql = 'FROM `$table_old` ';
 
@@ -288,8 +287,8 @@ class Codegen_Model extends Codegen {
         // caculte the total rows
         if(\$calc_total === TRUE)
         {
-            \$pagination->total_items = \$this->_db->query(Database::SELECT,
-                'SELECT COUNT(`$key_id`) num_rows '.\$sql, FALSE
+            \$pagination->total_items = \$this->_db->query(
+                Database::SELECT, 'SELECT COUNT(`$key_id`) num_rows '.\$sql, FALSE
             )->get('num_rows');
 
             \$data['pagination'] = \$pagination;
@@ -580,7 +579,7 @@ CCC;
 
     public function lists(array \$params, & \$pagination = NULL, \$calc_total = TRUE)
     {
-        if( ! \$pagination instanceOf Pagination) \$pagination = new Pagination;
+        \$pagination instanceOf Pagination OR \$pagination = new Pagination;
 
         // Customize where from params
         //\$this->where('', '', );

@@ -19,9 +19,10 @@ return array(
 
     // Model
     'model' => array(
-        'on'        => TRUE,    # To generate model classes or not
-        'directory' => 'model', # The directory you want to put your model classes
-        't_prefix'  => 't_',    # Remove the table prefix for more clean classes name
+        'on'        => TRUE,            # To generate model classes or not
+        'directory' => 'model',         # The directory you want to put your model classes
+        'extends'   => 'Kohana_Model',  # All model classes will extends from this class
+        't_prefix'  => 't_',            # Remove the table prefix for more clean classes name
         'model'     => array(
             'excludes'  => array('insert_time','insert_by','update_time','update_by','remark'),
         ),

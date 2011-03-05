@@ -21,7 +21,7 @@ class Controller_Codegen extends Kohana_Controller {
         $view       = Codegen::factory('view');
         $theme      = Codegen::factory('theme');
         $i18n       = Codegen::factory('i18n');
-        $api       = Codegen::factory('api');
+        $api        = Codegen::factory('api');
 
         $tables     = array();
 

@@ -1,10 +1,10 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-class Codegen_Controller extends Codegen {
+class Codegen_Api extends Codegen {
 
     public function __construct(array $config = NULL)
     {
-        if($config === NULL) $config = parent::$config['controller'];
+        if($config === NULL) $config = parent::$config['api'];
 
         $repos = str_replace('_', DIRECTORY_SEPARATOR, $config['directory']);
         $repos = parent::$config['repository'].'classes'.DIRECTORY_SEPARATOR.$repos.DIRECTORY_SEPARATOR;
@@ -25,71 +25,74 @@ class Codegen_Controller extends Codegen {
         $key_id     = key($columns);
         $table      = explode('_', $table);
         $table      = Inflector::singular(end($table));
-        $uctable    = ucfirst($table);
+        $uctalbe    = '_'.ucfirst($table);
 
         $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
                         .strtr(parent::$config['license'], array(
                             '$package'  => $this->module,
                             '$year'     => date('Y'),
                             '$see'      => $this->settings['extends'],
-                        ))."\nclass {$this->settings['directory']}_{$uctable} extends {$this->settings['extends']} {\n\n";
+                        ))."\nclass {$this->settings['directory']}{$uctalbe} extends {$this->settings['extends']} {\n\n";
         $content .= <<< CCC
     public function before()
     {
         parent::before();
 
-        \$this->model = new Model_$uctable;
+        \$this->model = new Model$uctalbe;
     }
 
-    public function action_index(\$$key_id = NULL)
+    public function action_get(\$params)
     {
-        echo new View_$uctable;
+        //
     }
 
-    public function action_append()
+    public function action_create(\$params)
     {
-        \$data = array();
-        if(empty(\$_POST))
-        {
-            // prepare others data
-        }
-        else
-        {
-            \$valid = empty(\$_POST['$key_id']) 
-                ? \$this->model->append(\$_POST) 
-                : \$this->model->update(\$_POST['$key_id'], \$_POST);
-                
-            if(\$valid instanceOf Validate)
-            {
-                \$data = \$valid->as_array();
-                \$data['errors'] = \$valid->errors('validate');
-            }
-            else
-            {
-                \$data = \$valid;
-            }
-        }
-        
-        //\$this->render('view-file', \$data);
+        //
     }
 
-    /**
-     * $uctable lists
-     *
-     * @access	protected
-     * @param	array	\$params
-     * @return	array   array('{$table}s' => data, 'orderby' => \$params['orderby'], 'pagination' => \$pagination)
-     */
+    public function action_update(\$params)
+    {
+        //
+    }
+
+    public function action_delete(\$params)
+    {
+        //
+    }
+
     protected function lists(array \$params)
     {
-        \$params['orderby'] = parent::get('sort');
+        \$orderby = parent::get('sort', 0);
 
-        \$data = \$this->model->lists(\$params);
+        switch(\$orderby)
+        {
+            case 0:
+                \$params['orderby'] = 'priority DESC';
+                break;
+            case 1:
+                \$params['orderby'] = 'status ASC';
+                break;
+            case 2:
+                \$params['orderby'] = 'risk DESC';
+                break;
+            case 3:
+                \$params['orderby'] = 'update_time DESC';
+                break;
+            default:
+                \$params['orderby'] = 'priority DESC';
+                break;
+        }
+
+        \$data = \$this->model->lists(\$params, \$page);
+
+        \$data['orderby']       = \$orderby;
+        \$data['pagination']    = \$page;
 
         return \$data;
     }
 
-} // END {$this->settings['directory']}_$uctable
+} // END {$this->settings['directory']}$uctalbe
 
 CCC;
         $fp = fopen($this->repository.$table.'.php', 'w');
