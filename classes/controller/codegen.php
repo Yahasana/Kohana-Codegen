@@ -4,9 +4,10 @@ class Controller_Codegen extends Kohana_Controller {
 
     public function action_index()
     {
-        if( ! $modules = array_keys((array) Kohana::config('database')))
+      if( ! $modules = array_keys((array) Kohana::$config->load('database')))
         {
-            $this->request->response = 'No any database config can be found'; return;
+            $this->response->body('No any database config can be found');
+            return;
         }
 
         if(isset($_GET['m']) AND in_array($_GET['m'], $modules))
@@ -38,10 +39,11 @@ class Controller_Codegen extends Kohana_Controller {
                 'api'           => $api ? $api->render($table, $columns) : '&oplus;',
             );
         }
+        
 
         $view = new View('codegen', array('module' => $module, 'modules' => $modules, 'tables' => $tables));
 
-        $this->request->response = $view->render();
+        $this->response->body($view->render());
     }
 
 } // END Controller_Codegen

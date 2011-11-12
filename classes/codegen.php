@@ -8,7 +8,7 @@ abstract class Codegen {
 	{
 		if ( ! Codegen::$config)
 		{
-			$config = Kohana::config('codegen');
+			$config = Kohana::$config->load('codegen');
 
 			isset($_GET['m']) AND $config['module'] = $_GET['m'];
 
