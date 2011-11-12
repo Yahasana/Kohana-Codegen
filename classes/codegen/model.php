@@ -516,7 +516,7 @@ CCC;
             $rule = array();
 
             if( ! $column['is_nullable'] AND ! isset($column['column_default']))
-                $rule[] = "'not_empty' => TRUE, ";
+                $rule[] = "Array('not_empty'), ";
 
             switch($column['data_type'])
             {
@@ -524,12 +524,12 @@ CCC;
                 case 'int unsigned':
                 case 'tinyint':
                 case 'tinyint unsigned':
-                    $rule[] = "'range' => array(".$column['min'].", ".$column['max']."), ";
+                  $rule[] = "Array('range' => array(':value',".$column['min'].", ".$column['max'].")), ";
                     break;
                 case 'varchar':
-                case 'text':
+                case 'text': 
                 case 'string':
-                    $rule[] = "'max_length' => array(".$column['character_maximum_length']."), ";
+                    $rule[] = "array('max_length', array(':value', ".$column['character_maximum_length'].")), ";
                     break;
                 case 'enum':
                     break;
