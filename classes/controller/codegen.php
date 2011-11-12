@@ -6,7 +6,7 @@ class Controller_Codegen extends Kohana_Controller {
     {
         if( ! $modules = array_keys((array) Kohana::config('database')))
         {
-            $this->request->response = 'No any database config can be found'; return;
+            $this->response->body('No any database config can be found'); return;
         }
 
         if(isset($_GET['m']) AND in_array($_GET['m'], $modules))
@@ -41,7 +41,7 @@ class Controller_Codegen extends Kohana_Controller {
 
         $view = new View('codegen', array('module' => $module, 'modules' => $modules, 'tables' => $tables));
 
-        $this->request->response = $view->render();
+        $this->response->body($view->render());
     }
 
 } // END Controller_Codegen
