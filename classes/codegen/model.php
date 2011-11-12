@@ -48,23 +48,32 @@ class Codegen_Model extends Codegen {
         }
         return $tmp;
     }
+    
+    
+    protected function _table_file($table, $model_type = 'model'){
+        $tables     = explode('_', $table);
+        $table      = Inflector::singular(array_pop($tables));
+        $dir        = $this->repository.$model_type.DIRECTORY_SEPARATOR
+                      .(count($tables)>0?join(DIRECTORY_SEPARATOR,$tables).DIRECTORY_SEPARATOR:'');
+        $file = $dir.$table.'.php';
+
+        if(count($tables)>0 && !file_exists($dir))
+          mkdir($dir,0755, true);
+        
+        $tables[] = $table;
+        $uctalbe    = '_'.strtr(ucwords(join(' ',$tables)),' ','_');
+        
+        return Array($table, $file, $uctalbe);
+    }
+    
 
     protected function model($table, $columns)
     {
-        $table_old = $table;
+      $table_old = $table;
+      list($table, $file, $uctalbe) = $this->_table_file($table);
 
         $key_id = key($columns);
 
-        $tables     = explode('_', $table);
-        $table      = Inflector::singular(end($tables));
-        $file       = $this->repository.'model'.DIRECTORY_SEPARATOR.$table.'.php';
-
-        if(file_exists($file))
-        {
-            $file = $this->repository.'model'.DIRECTORY_SEPARATOR.prev($tables).$table.'.php';
-        }
-
-        $uctalbe    = '_'.ucfirst($table);
 
         $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
                         .strtr(parent::$config['license'], array(
@@ -342,13 +351,11 @@ CCC;
 
     protected function hive($table, $columns)
     {
-        $table_old = $table;
 
+      $table_old = $table;
         $key_id = key($columns);
 
-        $table      = explode('_', $table);
-        $table      = Inflector::singular(end($table));
-        $uctalbe    = '_'.ucfirst($table);
+        list($table, $file, $uctalbe) = $this->_table_file($table,'hive');
 
         $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
                         .strtr(parent::$config['license'], array(
@@ -436,7 +443,7 @@ CCC;
 } // END {$this->settings['directory']}$uctalbe
 
 CCC;
-        $fp = fopen($this->repository.'hive'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
+        $fp = fopen($file, 'w');
         fwrite($fp, $content);
         fclose($fp);
 
@@ -446,12 +453,8 @@ CCC;
     protected function orm($table, $columns)
     {
         $table_old = $table;
-
         $key_id = key($columns);
-
-        $table      = explode('_', $table);
-        $table      = Inflector::singular(end($table));
-        $uctalbe    = '_'.ucfirst($table);
+        list($table, $file, $uctalbe) = $this->_table_file($table,'orm');
 
         $content    = "<?php defined('SYSPATH') or die('No direct script access.');\n"
                         .strtr(parent::$config['license'], array(
@@ -605,7 +608,7 @@ CCC;
 } // END {$this->settings['directory']}$uctalbe
 
 CCC;
-        $fp = fopen($this->repository.'orm'.DIRECTORY_SEPARATOR.$table.'.php', 'w');
+        $fp = fopen($file, 'w');
         fwrite($fp, $content);
         fclose($fp);
 
