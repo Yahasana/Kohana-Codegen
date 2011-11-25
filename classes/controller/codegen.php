@@ -1,4 +1,5 @@
 <?php
+set_time_limit(0);
 
 class Controller_Codegen extends Kohana_Controller {
 
