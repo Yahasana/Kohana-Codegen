@@ -148,7 +148,7 @@ class Codegen_Model extends Codegen {
 
         $data['comment'] = $comment ? "\n\t *      ".implode("\n\t *      ", $comment)."\n\t *" : '';
 
-        $data['columns'] = implode('\',\'', array_keys($columns));
+        $data['columns'] = array_keys($columns);
 
         $data['rule_insert'] = '$rules = array_intersect_key('.preg_replace(
                 array('#\n\s+array#m', '#\(\n\s+\'#', '#\(\n\s+\d\s=\>\s#', '#,\n\s+\d\s=\>\s#', '#,\n\s+\)#', '#\'(\d+)\'#', '#  #', '#\n#', '#,\),\)#'),

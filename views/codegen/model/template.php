@@ -8,23 +8,26 @@ class <?= $class ?> extends <?= $extends ?> {
     public function get($<?= $key_id ?>)
     {
         return ctype_digit((string) $<?= $key_id ?>)
-            ? DB::select('<?= $columns ?>')
+            ? DB::select('<?= implode("','", $columns) ?>')
                 ->from('<?= $table_old ?>')
                 ->where('<?= $key_id ?>', '=', $<?= $key_id ?>)
                 ->execute($this->_db)
                 ->current()
             : NULL;
     }
+
     /**
-     * Insert <?= $table ?>
+     * Insert <?= $table."\n" ?>
      *
      * @access	public
-     * @param	array	$params<?= $comment ?>
+     * @param	array	$params<?= $comment."\n" ?>
      * @return	mix     Validated data or validate object
      */
     public function append(array $params = NULL)
     {
-        <?= $datatime."\n        " ?>$valid = Validate::factory($params ?: $_POST ?: $_GET)<?= $rules ?>;
+        $params === NULL AND $params = $_POST ?: $_GET;
+
+        <?= $datatime."\n        " ?>$valid = Validate::factory($params)<?= $rules ?>;
 
         <?= $rule_insert."\n" ?>
 
@@ -61,13 +64,15 @@ class <?= $class ?> extends <?= $extends ?> {
      * Update <?= $table."\n" ?>
      *
      * @access	public
-     * @param	int	    $<?= $key_id ?>
+     * @param	int	    $<?= $key_id."\n" ?>
      * @param	array	$params<?= $comment."\n" ?>
      * @return	mix     Validated data or validate object
      */
     public function update($<?= $key_id ?>, array $params = NULL)
     {
-        <?= $datatime."\n        " ?>$valid = Validate::factory($params ?: $_POST ?: $_GET);
+        $params === NULL AND $params = $_POST ?: $_GET;
+
+        <?= $datatime."\n        " ?>$valid = Validate::factory($params);
 
         <?= $rule_update."\n" ?>
 
@@ -137,7 +142,7 @@ class <?= $class ?> extends <?= $extends ?> {
 
             if($pagination->total_items === 0)
             {
-                $data['{$table}s'] = array();
+                $data['<?= $table ?>s'] = array();
                 isset($params['orderby']) AND $data['orderby'] = $params['orderby'];
                 return $data;
             }
@@ -148,14 +153,23 @@ class <?= $class ?> extends <?= $extends ?> {
         {
             switch($params['orderby'])
             {
-                case 'priority':
-                    $sql .= ' ORDER BY priority DESC';
-                    break;
+                <?php
+                foreach($columns as $key)
+                {?>
+                case '<?= $key ?>':
+                    $sql .= ' ORDER BY <?= $key ?> ';
+                    break;<?php
+                }?>
                 default:
-                    $params['orderby'] = 'priority';
-                    $sql .= ' ORDER BY priority DESC';
+                    $params['orderby'] = '<?= $key_id ?>';
+                    $sql .= ' ORDER BY <?= $key_id ?> ';
                     break;
             }
+
+            // e.g. ?orderby=<?= $key_id ?>&sort=asc
+            $sql .= isset($params['sort']) ? $params['sort'] : 'DESC';
+
+            // Tell the view orderby which field
             $data['orderby'] = $params['orderby'];
         }
 
@@ -166,4 +180,4 @@ class <?= $class ?> extends <?= $extends ?> {
         return $data;
     }
 
-} // END <?= $class ?>
+} // END <?= $class."\n" ?>

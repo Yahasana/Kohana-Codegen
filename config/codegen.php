@@ -75,8 +75,8 @@ return array(
  * @author		sumh <oalite@gmail.com>
  * @package		\$package
  * @copyright	(c) \$year OALite team, All rights reserved.
- * @license		http://www.oalite.com/license.txt
- * @link		http://www.oalite.com
+ * @license		http://oalite.com/license.txt
+ * @link		http://oalite.com
  * @see			\$see
  * *
  */
